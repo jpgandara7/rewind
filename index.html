@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Rewind — a pass-the-phone music timeline game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Archivo+Expanded:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#170F2E;
+  --panel:#241645;
+  --panel-2:#2F1D59;
+  --ink:#F2ECFF;
+  --dim:#A392CF;
+  --amber:#FFB33B;
+  --pink:#FF4D8D;
+  --mint:#5BE3A6;
+  --red:#FF6B6B;
+  --edge:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--night);color:var(--ink);
+  font-family:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:17px;line-height:1.45;overscroll-behavior:none}
+body{min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#app{max-width:520px;margin:0 auto;padding:18px 18px 40px}
+h1,h2,h3{font-family:"Archivo Expanded",Archivo,sans-serif;font-weight:900;margin:0 0 .4em;line-height:1.05}
+h1{font-size:2.1rem;letter-spacing:-.02em}
+h2{font-size:1.4rem}
+p{margin:0 0 1em;color:var(--dim)}
+p.lead{color:var(--ink)}
+a{color:var(--amber)}
+button{font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:14px;
+  padding:15px 18px;width:100%;background:var(--amber);color:#2A1500;margin-bottom:10px}
+button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
+button[disabled]{opacity:.45;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--edge)}
+button.pink{background:var(--pink);color:#3A0018}
+button.small{width:auto;padding:9px 14px;font-size:.85rem;border-radius:10px;margin:0}
+input,select{font:inherit;width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--edge);
+  background:var(--panel);color:var(--ink);margin-bottom:10px}
+input::placeholder{color:#7C6BA8}
+label{display:block;font-size:.85rem;color:var(--dim);margin-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--edge);border-radius:20px;padding:18px;margin-bottom:14px}
+.row{display:flex;gap:10px;align-items:center}
+.row>button{margin-bottom:0}
+.hidden{display:none !important}
+.note{font-size:.82rem;color:var(--dim);line-height:1.4}
+.err{background:rgba(255,107,107,.13);border:1px solid var(--red);color:#FFD9D9;
+  border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:.9rem}
+
+/* setup steps */
+.steps{counter-reset:s;padding-left:0;list-style:none;margin:0 0 14px}
+.steps li{counter-increment:s;position:relative;padding-left:32px;margin-bottom:12px;color:var(--dim);font-size:.92rem}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:22px;height:22px;
+  border-radius:50%;background:var(--panel-2);color:var(--amber);font-size:.75rem;font-weight:800;
+  display:grid;place-items:center}
+code{background:var(--panel-2);padding:2px 6px;border-radius:6px;font-size:.85em;word-break:break-all;color:var(--amber)}
+
+/* players */
+.plist{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.prow{display:flex;gap:8px;align-items:center}
+.prow input{margin:0}
+.prow .x{width:44px;flex:0 0 44px;background:var(--panel-2);color:var(--dim);padding:13px 0;margin:0;border-radius:12px}
+
+/* turn header */
+.turnbar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.who{font-family:"Archivo Expanded";font-weight:900;font-size:1.6rem}
+.count{color:var(--dim);font-size:.9rem}
+
+/* timer */
+.timer{font-family:"Archivo Expanded";font-weight:900;font-size:3.6rem;line-height:1;
+  text-align:center;font-variant-numeric:tabular-nums;margin:4px 0 2px}
+.bar{height:6px;border-radius:99px;background:var(--panel-2);overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--amber);width:100%;transition:width .25s linear}
+.timer.low{color:var(--pink)}
+.bar.low i{background:var(--pink)}
+
+/* timeline */
+.tl{display:flex;flex-direction:column;gap:0;margin:6px 0 14px}
+.slot{width:100%;border:1.5px dashed var(--edge);background:transparent;color:var(--dim);
+  border-radius:12px;padding:11px;font-size:.82rem;margin:5px 0}
+.slot.sel{border-style:solid;border-color:var(--amber);background:rgba(255,179,59,.14);color:var(--amber);font-weight:800}
+.yearcard{display:flex;align-items:center;gap:12px;background:var(--panel-2);border-radius:14px;padding:11px 14px}
+.yearcard .y{font-family:"Archivo Expanded";font-weight:900;font-size:1.45rem;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.yearcard .t{font-size:.8rem;color:var(--dim);line-height:1.25;overflow:hidden}
+.yearcard .t b{display:block;color:var(--ink);font-weight:600}
+
+/* reveal */
+.reveal{text-align:center;padding:26px 18px}
+.bigyear{font-family:"Archivo Expanded";font-weight:900;font-size:4.6rem;line-height:.95;
+  font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin:0 0 4px}
+.verdict{font-family:"Archivo Expanded";font-weight:900;font-size:1.2rem;margin-bottom:10px}
+.ok{color:var(--mint)} .no{color:var(--red)}
+.songname{font-weight:800;font-size:1.05rem;margin-bottom:2px}
+.artist{color:var(--dim);margin-bottom:0}
+
+/* scores */
+.score{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--edge);font-size:.95rem}
+.score:last-child{border-bottom:0}
+.score .n{font-variant-numeric:tabular-nums;color:var(--amber);font-weight:800}
+.lead-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);display:inline-block;margin-right:7px}
+.toggle{display:flex;gap:8px;margin-bottom:12px}
+.toggle button{background:var(--panel-2);color:var(--dim);border:1.5px solid var(--edge);margin:0;
+  padding:11px;font-size:.85rem;border-radius:12px}
+.toggle button.on{background:rgba(91,227,166,.16);border-color:var(--mint);color:var(--mint)}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid var(--edge);border-top-color:var(--amber);
+  border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div id="app"><div class="card"><span class="spin"></span>Loading…</div></div>
+
+<script>
+"use strict";
+/* ─────────────────────────── config & tiny helpers ─────────────────────────── */
+const SCOPES = "playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state";
+const REDIRECT = location.origin + location.pathname;
+const LS = {
+  cid:"rw.clientId", tok:"rw.token", game:"rw.game", pl:"rw.playlist", mb:"rw.mb"
+};
+const $ = (h) => { const d=document.createElement("div"); d.innerHTML=h.trim(); return d.firstChild; };
+const app = document.getElementById("app");
+const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const load = (k,d) => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):d; } catch(e){ return d; } };
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+let ERR = "";
+
+function render(html){
+  app.innerHTML = (ERR ? `<div class="err">${esc(ERR)}</div>` : "") + html;
+  ERR = "";
+}
+function fail(msg){ ERR = msg; }
+
+/* ─────────────────────────── Spotify auth (PKCE, no server) ─────────────────────────── */
+async function sha256(str){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function randStr(n){
+  const a = new Uint8Array(n); crypto.getRandomValues(a);
+  return Array.from(a, b => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("");
+}
+async function beginLogin(){
+  const cid = load(LS.cid,"");
+  if(!cid){ fail("Add your Spotify Client ID first."); return draw(); }
+  const verifier = randStr(64);
+  sessionStorage.setItem("rw.verifier", verifier);
+  const p = new URLSearchParams({
+    client_id: cid, response_type: "code", redirect_uri: REDIRECT,
+    scope: SCOPES, code_challenge_method: "S256", code_challenge: await sha256(verifier)
+  });
+  location.href = "https://accounts.spotify.com/authorize?" + p;
+}
+async function finishLogin(code){
+  const verifier = sessionStorage.getItem("rw.verifier");
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body: new URLSearchParams({
+      client_id: load(LS.cid,""), grant_type:"authorization_code", code,
+      redirect_uri: REDIRECT, code_verifier: verifier || ""
+    })
+  });
+  const j = await res.json();
+  if(!res.ok) throw new Error(j.error_description || "Login failed. Check the redirect URI matches exactly.");
+  j.expires_at = Date.now() + (j.expires_in-60)*1000;
+  save(LS.tok, j);
+}
+async function refresh(){
+  const t = load(LS.tok,null);
+  if(!t?.refresh_token) throw new Error("Session expired. Log in again.");
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body: new URLSearchParams({ client_id: load(LS.cid,""), grant_type:"refresh_token", refresh_token: t.refresh_token })
+  });
+  const j = await res.json();
+  if(!res.ok){ localStorage.removeItem(LS.tok); throw new Error("Session expired. Log in again."); }
+  j.refresh_token = j.refresh_token || t.refresh_token;
+  j.expires_at = Date.now() + (j.expires_in-60)*1000;
+  save(LS.tok, j);
+  return j.access_token;
+}
+async function token(){
+  const t = load(LS.tok,null);
+  if(!t) throw new Error("Not logged in.");
+  if(Date.now() > t.expires_at) return refresh();
+  return t.access_token;
+}
+const loggedIn = () => !!load(LS.tok,null);
+
+/* One API helper. Retries once on 401, honours Retry-After on 429. */
+async function api(path, opts={}, retry=true){
+  const res = await fetch("https://api.spotify.com/v1"+path, {
+    ...opts,
+    headers:{ Authorization:"Bearer "+await token(), "Content-Type":"application/json", ...(opts.headers||{}) }
+  });
+  if(res.status === 401 && retry){ await refresh(); return api(path, opts, false); }
+  if(res.status === 429){
+    const wait = Number(res.headers.get("Retry-After")||2);
+    const body = await res.json().catch(()=>({}));
+    if(body?.error?.reason === "QUOTA_EXCEEDED")
+      throw new Error("Spotify daily quota hit for your developer account. Try again tomorrow.");
+    if(retry){ await sleep((wait+1)*1000); return api(path, opts, false); }
+    throw new Error("Spotify is rate-limiting the app. Wait a moment.");
+  }
+  if(res.status === 204) return null;
+  const j = await res.json().catch(()=>null);
+  if(!res.ok) throw new Error(j?.error?.message || ("Spotify error "+res.status));
+  return j;
+}
+
+/* ─────────────────────────── years ─────────────────────────── */
+/* Spotify gives the release year of the album a track sits on, so a 1975 song on a
+   2011 remaster reads 2011. Two corrections: the ISRC year (free, offline) and
+   MusicBrainz's earliest release date (one network call, optional). */
+function isrcYear(isrc){
+  if(!isrc || isrc.length < 7) return null;
+  const yy = parseInt(isrc.slice(5,7), 10);
+  if(isNaN(yy)) return null;
+  const nowYY = new Date().getFullYear() % 100;
+  const y = yy <= nowYY ? 2000+yy : 1900+yy;
+  return (y >= 1900 && y <= new Date().getFullYear()) ? y : null;
+}
+async function mbYear(isrc){
+  if(!isrc) return null;
+  try{
+    const res = await fetch(`https://musicbrainz.org/ws/2/isrc/${encodeURIComponent(isrc)}?inc=releases&fmt=json`,
+      { headers:{ Accept:"application/json" } });
+    if(!res.ok) return null;
+    const j = await res.json();
+    let best = null;
+    for(const rec of (j.recordings||[])){
+      for(const d of [rec["first-release-date"], ...(rec.releases||[]).map(r=>r.date)]){
+        const y = parseInt(String(d||"").slice(0,4),10);
+        if(y >= 1900 && (best===null || y < best)) best = y;
+      }
+    }
+    return best;
+  }catch(e){ return null; }
+}
+async function resolveYear(track){
+  const album = parseInt(String(track.album?.release_date||"").slice(0,4),10) || null;
+  const isrc  = track.external_ids?.isrc || null;
+  const iy    = isrcYear(isrc);
+  let year = album, src = "album";
+  if(iy && (!album || iy < album)){ year = iy; src = "isrc"; }
+  if(load(LS.mb,true) && isrc){
+    const my = await mbYear(isrc);
+    if(my && (!year || my < year)){ year = my; src = "musicbrainz"; }
+  }
+  return { year, src, isrc };
+}
+
+/* ─────────────────────────── game state ─────────────────────────── */
+let G = load(LS.game, null);   // {players:[{name,cards:[{year,name,artist,id}],bonus}], turn, target, used:[]}
+let POOL = load(LS.pl, null);  // {id,name,tracks:[{id,uri,name,artist}]}
+let VIEW = "boot";
+let T = null;                  // active turn: {track, year, src, slot, locked, secs, timerId, result}
+let DEVICES = [], DEVICE = null;
+
+const saveGame = () => save(LS.game, G);
+const cur = () => G.players[G.turn];
+const sortedCards = p => [...p.cards].sort((a,b)=>a.year-b.year);
+
+/* ─────────────────────────── screens ─────────────────────────── */
+function draw(){
+  if(VIEW==="boot")    return viewBoot();
+  if(VIEW==="setup")   return viewSetup();
+  if(VIEW==="playlist")return viewPlaylist();
+  if(VIEW==="players") return viewPlayers();
+  if(VIEW==="dealing") return viewDealing();
+  if(VIEW==="handoff") return viewHandoff();
+  if(VIEW==="bonus")   return viewBonus();
+  if(VIEW==="turn")    return viewTurn();
+  if(VIEW==="reveal")  return viewReveal();
+  if(VIEW==="win")     return viewWin();
+  if(VIEW==="scores")  return viewScores();
+}
+
+/* — boot / connect — */
+function viewBoot(){
+  const cid = load(LS.cid,"");
+  render(`
+    <h1>Rewind</h1>
+    <p class="lead">A song plays. Guess the year, slot it into your timeline, pass the phone. First to ten cards wins.</p>
+    <div class="card">
+      <h2>Connect Spotify</h2>
+      <ol class="steps">
+        <li>Open <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a> and create an app.</li>
+        <li>Set the Redirect URI to exactly <code>${esc(REDIRECT)}</code></li>
+        <li>Tick the Web API and Web Playback SDK boxes, save, then copy the Client ID.</li>
+      </ol>
+      <label for="cid">Client ID</label>
+      <input id="cid" value="${esc(cid)}" placeholder="32 characters" autocomplete="off" spellcheck="false">
+      <button id="go">${loggedIn() ? "Reconnect Spotify" : "Log in with Spotify"}</button>
+      ${loggedIn() ? `<button class="ghost" id="cont">Continue to the game</button>` : ""}
+      <p class="note">Your Spotify account needs Premium, and the account must be added as a user inside that dashboard app. Up to five accounts — but only the host logs in here, so one is enough.</p>
+    </div>
+  `);
+  const inp = document.getElementById("cid");
+  inp.addEventListener("input", ()=>save(LS.cid, inp.value.trim()));
+  document.getElementById("go").onclick = ()=>{ save(LS.cid, inp.value.trim()); beginLogin(); };
+  const c = document.getElementById("cont");
+  if(c) c.onclick = ()=>{ VIEW = G ? "handoff" : "setup"; draw(); };
+}
+
+/* — setup hub — */
+function viewSetup(){
+  render(`
+    <h1>New game</h1>
+    <div class="card">
+      <h2>1. Pick the music</h2>
+      <p>${POOL ? esc(POOL.name)+" — "+POOL.tracks.length+" songs ready" : "Choose one of your own playlists."}</p>
+      <button class="${POOL?"ghost":""}" id="pl">${POOL?"Change playlist":"Choose a playlist"}</button>
+    </div>
+    <div class="card">
+      <h2>2. Add the players</h2>
+      <p>Two to eight people, one phone between you.</p>
+      <button class="${POOL?"":"ghost"}" id="pp" ${POOL?"":"disabled"}>Add players</button>
+    </div>
+    <p class="note">Spotify only hands over the songs inside playlists you own or collaborate on. If you want to play someone else's Hitster list, copy the songs into a playlist of your own first.</p>
+  `);
+  document.getElementById("pl").onclick = ()=>{ VIEW="playlist"; draw(); loadPlaylists(); };
+  document.getElementById("pp").onclick = ()=>{ VIEW="players"; draw(); };
+}
+
+/* — playlist picker — */
+let PLAYLISTS = null;
+async function loadPlaylists(){
+  try{
+    const j = await api("/me/playlists?limit=50");
+    PLAYLISTS = j.items || [];
+    if(VIEW==="playlist") draw();
+  }catch(e){ fail(e.message); VIEW="playlist"; PLAYLISTS=[]; draw(); }
+}
+function viewPlaylist(){
+  if(PLAYLISTS === null){
+    return render(`<h1>Your playlists</h1><div class="card"><span class="spin"></span>Asking Spotify…</div>`);
+  }
+  render(`
+    <h1>Your playlists</h1>
+    <p>Pick the one to draw songs from. Bigger and more varied is better — aim for 80+ songs spread across decades.</p>
+    <div class="card">
+      ${PLAYLISTS.length ? PLAYLISTS.map((p,i)=>`
+        <button class="ghost" data-i="${i}" style="text-align:left">
+          ${esc(p.name)} <span style="color:var(--dim);font-size:.85rem">· ${p.items?.total ?? p.tracks?.total ?? "?"} songs</span>
+        </button>`).join("")
+      : `<p>No playlists came back. Make one in Spotify, add songs, and reopen this.</p>`}
+      <button class="ghost" id="back">Back</button>
+    </div>
+  `);
+  document.getElementById("back").onclick = ()=>{ VIEW="setup"; draw(); };
+  app.querySelectorAll("[data-i]").forEach(b => b.onclick = ()=>choosePlaylist(PLAYLISTS[+b.dataset.i]));
+}
+async function choosePlaylist(p){
+  render(`<h1>${esc(p.name)}</h1><div class="card"><span class="spin"></span>Pulling in the songs…</div>`);
+  try{
+    let tracks = [], offset = 0;
+    while(offset < 400){
+      const j = await api(`/playlists/${p.id}/items?limit=50&offset=${offset}`);
+      const items = j.items || j.items?.items || [];
+      if(!items.length) break;
+      for(const it of items){
+        const t = it.item || it.track;   // field was renamed in Feb 2026; accept both
+        if(!t || t.is_local || t.type !== "track" || !t.uri) continue;
+        tracks.push({ id:t.id, uri:t.uri, name:t.name, artist:(t.artists||[]).map(a=>a.name).join(", ") });
+      }
+      offset += 50;
+      if(!j.next) break;
+    }
+    const seen = new Set();
+    tracks = tracks.filter(t => t.id && !seen.has(t.id) && seen.add(t.id));
+    if(tracks.length < 12) throw new Error("That playlist has too few playable songs. Pick one with at least 30.");
+    POOL = { id:p.id, name:p.name, tracks };
+    save(LS.pl, POOL);
+    VIEW = "setup"; draw();
+  }catch(e){
+    fail(e.message.includes("items") ? "Spotify won't share that playlist's songs — you can only use playlists you own or collaborate on." : e.message);
+    VIEW="playlist"; draw();
+  }
+}
+
+/* — players — */
+let NAMES = ["",""];
+function viewPlayers(){
+  render(`
+    <h1>Who's playing?</h1>
+    <div class="card">
+      <div class="plist">
+        ${NAMES.map((n,i)=>`
+          <div class="prow">
+            <input data-n="${i}" value="${esc(n)}" placeholder="Player ${i+1}" autocomplete="off" maxlength="14">
+            ${NAMES.length>2 ? `<button class="x" data-x="${i}" aria-label="Remove player">✕</button>`:""}
+          </div>`).join("")}
+      </div>
+      ${NAMES.length<8 ? `<button class="ghost" id="add">Add another player</button>`:""}
+      <label for="target">Cards needed to win</label>
+      <select id="target">
+        ${[6,8,10,12].map(n=>`<option value="${n}" ${n===10?"selected":""}>${n} cards</option>`).join("")}
+      </select>
+      <div class="toggle">
+        <button id="mb" class="${load(LS.mb,true)?"on":""}">Accurate years: ${load(LS.mb,true)?"on":"off"}</button>
+      </div>
+      <p class="note">Accurate years checks each song against MusicBrainz so remasters and greatest-hits albums don't report the wrong decade. It adds about a second before each song.</p>
+      <button id="start">Deal the first cards</button>
+      <button class="ghost" id="back">Back</button>
+    </div>
+  `);
+  app.querySelectorAll("[data-n]").forEach(i => i.addEventListener("input", ()=>{ NAMES[+i.dataset.n]=i.value; }));
+  app.querySelectorAll("[data-x]").forEach(b => b.onclick = ()=>{ NAMES.splice(+b.dataset.x,1); draw(); });
+  const a = document.getElementById("add");
+  if(a) a.onclick = ()=>{ NAMES.push(""); draw(); };
+  document.getElementById("mb").onclick = ()=>{ save(LS.mb, !load(LS.mb,true)); draw(); };
+  document.getElementById("back").onclick = ()=>{ VIEW="setup"; draw(); };
+  document.getElementById("start").onclick = ()=>{
+    const names = NAMES.map((n,i)=>n.trim()||`Player ${i+1}`);
+    G = {
+      players: names.map(n=>({name:n, cards:[], bonus:0})),
+      turn: 0, target: +document.getElementById("target").value, used: []
+    };
+    VIEW="dealing"; draw(); dealStarters();
+  };
+}
+
+/* — deal one starting card each — */
+function drawTrack(){
+  const left = POOL.tracks.filter(t => !G.used.includes(t.id));
+  if(!left.length) return null;
+  return left[Math.floor(Math.random()*left.length)];
+}
+async function dealStarters(){
+  try{
+    for(const p of G.players){
+      let ok = false, tries = 0;
+      while(!ok && tries++ < 6){
+        const t = drawTrack();
+        if(!t) throw new Error("Ran out of songs. Use a bigger playlist.");
+        G.used.push(t.id);
+        const full = await api(`/tracks/${t.id}`);
+        const { year } = await resolveYear(full);
+        if(year){
+          p.cards.push({ year, name:t.name, artist:t.artist, id:t.id });
+          ok = true;
+        }
+      }
+      if(!ok) throw new Error("Spotify isn't returning release dates right now.");
+      draw();
+    }
+    saveGame();
+    VIEW="handoff"; draw();
+  }catch(e){ fail(e.message); VIEW="players"; draw(); }
+}
+function viewDealing(){
+  const done = G.players.filter(p=>p.cards.length).length;
+  render(`
+    <h1>Dealing</h1>
+    <div class="card">
+      <p class="lead"><span class="spin"></span>Everyone gets one song to anchor their timeline.</p>
+      ${G.players.map(p=>`<div class="score"><span>${esc(p.name)}</span>
+        <span class="n">${p.cards.length ? p.cards[0].year : "…"}</span></div>`).join("")}
+      <p class="note" style="margin-top:12px">${done} of ${G.players.length}</p>
+    </div>
+  `);
+}
+
+/* — handoff — */
+function viewHandoff(){
+  const p = cur();
+  render(`
+    <div class="card" style="text-align:center;padding:34px 20px">
+      <p class="note">Pass the phone to</p>
+      <div class="who" style="font-size:2.4rem;margin:6px 0 14px">${esc(p.name)}</div>
+      <p>${p.cards.length} of ${G.target} cards${p.bonus?` · ${p.bonus}/5 towards a bonus song`:""}</p>
+      <button id="go">I'm ready — play the song</button>
+      <button class="ghost small" id="sc" style="width:100%;margin-top:4px">See all scores</button>
+    </div>
+    <p class="note">Keep the phone face down while the song plays, or the title on your lock screen gives it away. Playing through a speaker works best.</p>
+  `);
+  document.getElementById("go").onclick = startTurn;
+  document.getElementById("sc").onclick = ()=>{ VIEW="scores"; draw(); };
+}
+
+/* — devices — */
+async function pickDevice(){
+  const j = await api("/me/player/devices");
+  DEVICES = j?.devices || [];
+  if(!DEVICES.length) throw new Error("No Spotify device is awake. Open Spotify, play any song for a second, then come back.");
+  DEVICE = (DEVICES.find(d=>d.is_active) || DEVICES[0]).id;
+  return DEVICE;
+}
+
+/* — the turn — */
+async function startTurn(){
+  render(`<div class="card"><span class="spin"></span>Cueing up a song…</div>`);
+  try{
+    if(!DEVICE) await pickDevice();
+    const t = drawTrack();
+    if(!t){ fail("You've played every song in the playlist."); VIEW="win"; return draw(); }
+    G.used.push(t.id); saveGame();
+    const full = await api(`/tracks/${t.id}`);
+    const { year, src } = await resolveYear(full);
+    if(!year) return startTurn();            // no usable date — quietly draw another
+    T = { track:t, year, src, slot:null, locked:false, secs:30, result:null, gotTitle:false, gotArtist:false };
+    await api("/me/player/play", {
+      method:"PUT",
+      body: JSON.stringify({ device_id: DEVICE, uris:[t.uri], position_ms: 0 })
+    }).catch(async e => {
+      await pickDevice();
+      return api("/me/player/play", { method:"PUT", body: JSON.stringify({ device_id: DEVICE, uris:[t.uri], position_ms: 0 }) });
+    });
+    VIEW="turn"; draw(); tick();
+  }catch(e){ fail(e.message); VIEW="handoff"; draw(); }
+}
+function tick(){
+  clearInterval(T.timerId);
+  T.timerId = setInterval(()=>{
+    T.secs--;
+    const el = document.getElementById("timer"), bar = document.getElementById("bar");
+    if(el){
+      el.textContent = T.secs;
+      el.classList.toggle("low", T.secs<=10);
+      bar.parentElement.classList.toggle("low", T.secs<=10);
+      bar.style.width = (T.secs/30*100)+"%";
+    }
+    if(T.secs<=0){ clearInterval(T.timerId); lockIn(); }
+  }, 1000);
+}
+function viewTurn(){
+  const p = cur();
+  const cards = sortedCards(p);
+  render(`
+    <div class="turnbar">
+      <span class="who">${esc(p.name)}</span>
+      <span class="count">${p.cards.length}/${G.target}</span>
+    </div>
+    <div class="timer" id="timer">${T.secs}</div>
+    <div class="bar"><i id="bar" style="width:${T.secs/30*100}%"></i></div>
+    <p>Say the title and artist out loud, then choose where this song sits in your timeline.</p>
+    <div class="tl">
+      ${cards.map((c,i)=>`
+        <button class="slot" data-s="${i}">${i===0 ? "Before "+c.year : "Between "+cards[i-1].year+" and "+c.year}</button>
+        <div class="yearcard"><span class="y">${c.year}</span><span class="t"><b>${esc(c.name)}</b>${esc(c.artist)}</span></div>
+      `).join("")}
+      <button class="slot" data-s="${cards.length}">After ${cards[cards.length-1].year}</button>
+    </div>
+    <button id="lock" ${T.slot===null?"disabled":""}>Lock it in</button>
+  `);
+  app.querySelectorAll("[data-s]").forEach(b => b.onclick = ()=>{
+    T.slot = +b.dataset.s;
+    app.querySelectorAll(".slot").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");
+    document.getElementById("lock").disabled = false;
+  });
+  if(T.slot!==null){
+    const b = app.querySelector(`[data-s="${T.slot}"]`);
+    if(b) b.classList.add("sel");
+  }
+  document.getElementById("lock").onclick = lockIn;
+}
+function lockIn(){
+  clearInterval(T.timerId);
+  const cards = sortedCards(cur());
+  let correct;
+  if(T.slot === null){ correct = false; }
+  else {
+    const lo = T.slot===0 ? -Infinity : cards[T.slot-1].year;
+    const hi = T.slot===cards.length ? Infinity : cards[T.slot].year;
+    correct = T.year >= lo && T.year <= hi;
+  }
+  T.result = correct;
+  if(correct){
+    cur().cards.push({ year:T.year, name:T.track.name, artist:T.track.artist, id:T.track.id });
+  }
+  saveGame();
+  VIEW="reveal"; draw();
+}
+function viewReveal(){
+  const won = cur().cards.length >= G.target;
+  render(`
+    <div class="card reveal">
+      <div class="bigyear">${T.year}</div>
+      <div class="verdict ${T.result?"ok":"no"}">${T.result ? "Right spot — card is yours" : (T.slot===null ? "Out of time" : "Wrong spot")}</div>
+      <div class="songname">${esc(T.track.name)}</div>
+      <p class="artist">${esc(T.track.artist)}</p>
+    </div>
+    <div class="card">
+      <p class="note" style="margin-bottom:10px">Did they also name it? Tap what they got right — one bonus point for both.</p>
+      <div class="toggle">
+        <button id="bt" class="${T.gotTitle?"on":""}">Title</button>
+        <button id="ba" class="${T.gotArtist?"on":""}">Artist</button>
+      </div>
+      <button id="next">${won ? "See who won" : "Next player"}</button>
+      <button class="ghost small" id="fix" style="width:100%">Year looks wrong — take the card back</button>
+      <p class="note" style="margin-top:10px">Year from ${T.src === "musicbrainz" ? "MusicBrainz's earliest release" : T.src === "isrc" ? "the recording's ISRC code" : "the album Spotify has it on"}.</p>
+    </div>
+  `);
+  document.getElementById("bt").onclick = ()=>{ T.gotTitle=!T.gotTitle; draw(); };
+  document.getElementById("ba").onclick = ()=>{ T.gotArtist=!T.gotArtist; draw(); };
+  document.getElementById("fix").onclick = ()=>{
+    const p = cur();
+    p.cards = p.cards.filter(c => c.id !== T.track.id);
+    T.result = false; saveGame(); draw();
+  };
+  document.getElementById("next").onclick = ()=>{
+    if(T.gotTitle && T.gotArtist) cur().bonus++;
+    api("/me/player/pause", {method:"PUT"}).catch(()=>{});
+    if(cur().cards.length >= G.target){ saveGame(); VIEW="win"; return draw(); }
+    if(cur().bonus >= 5){ cur().bonus -= 5; saveGame(); VIEW="bonus"; return draw(); }
+    G.turn = (G.turn+1) % G.players.length;
+    saveGame(); VIEW="handoff"; draw();
+  };
+}
+
+/* — bonus song, earned at five bonus points — */
+function viewBonus(){
+  const p = cur();
+  render(`
+    <div class="card reveal">
+      <div class="bigyear" style="font-size:3rem;color:var(--mint)">Bonus song</div>
+      <p class="lead" style="margin-top:8px">${esc(p.name)} spent five bonus points. Keep the phone — one more song, straight away.</p>
+      <p class="note">${p.bonus} bonus point${p.bonus===1?"":"s"} left over.</p>
+      <button id="go">Play it</button>
+    </div>
+  `);
+  document.getElementById("go").onclick = startTurn;
+}
+
+/* — scores / win — */
+function scoreList(){
+  const max = Math.max(...G.players.map(p=>p.cards.length));
+  return G.players.map(p=>`
+    <div class="score">
+      <span>${p.cards.length===max?'<span class="lead-dot"></span>':""}${esc(p.name)}</span>
+      <span class="n">${p.cards.length}${p.bonus?` <span style="color:var(--dim);font-weight:400">+${p.bonus}</span>`:""}</span>
+    </div>`).join("");
+}
+function viewScores(){
+  render(`<h1>Scores</h1><div class="card">${scoreList()}</div>
+    <p class="note">The small number is bonus points, one for each time you named both the title and the artist. Five of them buys an extra song on the spot.</p>
+    <button class="ghost" id="b">Back to the game</button>`);
+  document.getElementById("b").onclick = ()=>{ VIEW="handoff"; draw(); };
+}
+function viewWin(){
+  const w = [...G.players].sort((a,b)=> (b.cards.length-a.cards.length) || (b.bonus-a.bonus))[0];
+  render(`
+    <div class="card reveal">
+      <p class="note">Winner</p>
+      <div class="who" style="font-size:2.6rem;margin:4px 0 10px">${esc(w.name)}</div>
+      <p>${w.cards.length} cards${w.bonus?` and ${w.bonus} bonus`:""}</p>
+    </div>
+    <div class="card">${scoreList()}</div>
+    <button id="again">Play again, same players</button>
+    <button class="ghost" id="new">Start over</button>
+  `);
+  document.getElementById("again").onclick = ()=>{
+    NAMES = G.players.map(p=>p.name);
+    G = { players: G.players.map(p=>({name:p.name,cards:[],bonus:0})), turn:0, target:G.target, used:[] };
+    VIEW="dealing"; draw(); dealStarters();
+  };
+  document.getElementById("new").onclick = ()=>{
+    localStorage.removeItem(LS.game); G=null; NAMES=["",""]; VIEW="setup"; draw();
+  };
+}
+
+/* ─────────────────────────── start ─────────────────────────── */
+(async function boot(){
+  const q = new URLSearchParams(location.search);
+  if(q.get("error")){
+    history.replaceState({},"",REDIRECT);
+    fail("Spotify refused the login: " + q.get("error") + ". Usually the redirect URI doesn't match, or the account isn't added to the app.");
+    VIEW="boot"; return draw();
+  }
+  if(q.get("code")){
+    render(`<div class="card"><span class="spin"></span>Finishing login…</div>`);
+    try{ await finishLogin(q.get("code")); }
+    catch(e){ fail(e.message); }
+    history.replaceState({},"",REDIRECT);
+  }
+  if(!loggedIn()){ VIEW="boot"; return draw(); }
+  VIEW = G ? "handoff" : (POOL ? "setup" : "setup");
+  draw();
+})();
+</script>
+</body>
+</html>

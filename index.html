@@ -3,184 +3,246 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Rewind — a pass-the-phone music timeline game</title>
+<meta name="theme-color" content="#140B2B" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Rewind" />
+<title>Rewind</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Archivo+Expanded:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Expanded:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --night:#170F2E;
-  --panel:#241645;
-  --panel-2:#2F1D59;
-  --ink:#F2ECFF;
-  --dim:#A392CF;
-  --amber:#FFB33B;
-  --pink:#FF4D8D;
+  --bg:#140B2B;
+  --surface:#20123F;
+  --surface-2:#2C1A55;
+  --surface-3:#3A2370;
+  --ink:#F6F1FF;
+  --dim:#AB9AD8;
+  --edge:rgba(255,255,255,.11);
+  --magenta:#FF3D9A;
+  --gold:#FFD23D;
+  --aqua:#35E0D4;
   --mint:#5BE3A6;
-  --red:#FF6B6B;
-  --edge:rgba(255,255,255,.12);
+  --red:#FF6B74;
+  --accent:#FFD23D;
+  --accent-ink:#2A1F00;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;background:var(--night);color:var(--ink);
-  font-family:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;
-  font-size:17px;line-height:1.45;overscroll-behavior:none}
-body{min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-#app{max-width:520px;margin:0 auto;padding:18px 18px 40px}
-h1,h2,h3{font-family:"Archivo Expanded",Archivo,sans-serif;font-weight:900;margin:0 0 .4em;line-height:1.05}
-h1{font-size:2.1rem;letter-spacing:-.02em}
-h2{font-size:1.4rem}
-p{margin:0 0 1em;color:var(--dim)}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100dvh;background:var(--bg);color:var(--ink);
+  font-family:Archivo,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.45;
+  background-image:
+    radial-gradient(1100px 620px at 8% -8%, rgba(255,61,154,.26), transparent 62%),
+    radial-gradient(900px 540px at 108% 4%, rgba(91,155,255,.22), transparent 60%),
+    radial-gradient(900px 700px at 50% 112%, rgba(53,224,212,.16), transparent 62%);
+  background-attachment:fixed;
+  overscroll-behavior-y:none;
+}
+#app{max-width:540px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom))}
+h1,h2,.display{font-family:"Archivo Expanded",Archivo,sans-serif;font-weight:900;line-height:1.02;margin:0 0 .35em}
+h1{font-size:2.15rem;letter-spacing:-.025em}
+h2{font-size:1.25rem;letter-spacing:-.01em}
+p{margin:0 0 .95em;color:var(--dim)}
 p.lead{color:var(--ink)}
-a{color:var(--amber)}
-button{font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:14px;
-  padding:15px 18px;width:100%;background:var(--amber);color:#2A1500;margin-bottom:10px}
-button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
-button[disabled]{opacity:.45;cursor:not-allowed}
-button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--edge)}
-button.pink{background:var(--pink);color:#3A0018}
-button.small{width:auto;padding:9px 14px;font-size:.85rem;border-radius:10px;margin:0}
-input,select{font:inherit;width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--edge);
-  background:var(--panel);color:var(--ink);margin-bottom:10px}
-input::placeholder{color:#7C6BA8}
-label{display:block;font-size:.85rem;color:var(--dim);margin-bottom:6px}
-.card{background:var(--panel);border:1px solid var(--edge);border-radius:20px;padding:18px;margin-bottom:14px}
-.row{display:flex;gap:10px;align-items:center}
-.row>button{margin-bottom:0}
-.hidden{display:none !important}
-.note{font-size:.82rem;color:var(--dim);line-height:1.4}
-.err{background:rgba(255,107,107,.13);border:1px solid var(--red);color:#FFD9D9;
-  border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:.9rem}
+.note{font-size:.82rem;color:var(--dim);line-height:1.45}
+.num{font-variant-numeric:tabular-nums}
+.center{text-align:center}
+a{color:var(--gold)}
+code{background:var(--surface-3);padding:3px 7px;border-radius:7px;font-size:.84em;color:var(--gold);word-break:break-all}
 
-/* setup steps */
-.steps{counter-reset:s;padding-left:0;list-style:none;margin:0 0 14px}
-.steps li{counter-increment:s;position:relative;padding-left:32px;margin-bottom:12px;color:var(--dim);font-size:.92rem}
-.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:22px;height:22px;
-  border-radius:50%;background:var(--panel-2);color:var(--amber);font-size:.75rem;font-weight:800;
-  display:grid;place-items:center}
-code{background:var(--panel-2);padding:2px 6px;border-radius:6px;font-size:.85em;word-break:break-all;color:var(--amber)}
+button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:16px;padding:16px 18px;width:100%;
+  background:var(--accent);color:var(--accent-ink);margin-bottom:10px;transition:transform .08s ease}
+button:active{transform:scale(.985)}
+button:focus-visible{outline:3px solid var(--aqua);outline-offset:3px}
+button[disabled]{opacity:.4;cursor:not-allowed}
+button.ghost{background:rgba(255,255,255,.05);color:var(--ink);border:1.5px solid var(--edge)}
+button.danger{background:rgba(255,107,116,.15);border:1.5px solid var(--red);color:#FFD4D7}
+button.solid-danger{background:var(--red);color:#3B0005;border:0}
+button.tiny{padding:11px 14px;font-size:.86rem;border-radius:12px;margin:0}
 
-/* players */
-.plist{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-.prow{display:flex;gap:8px;align-items:center}
-.prow input{margin:0}
-.prow .x{width:44px;flex:0 0 44px;background:var(--panel-2);color:var(--dim);padding:13px 0;margin:0;border-radius:12px}
+.card{background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
+  border:1px solid var(--edge);border-radius:22px;padding:18px;margin-bottom:14px;
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.hero{position:relative;overflow:hidden;text-align:center;padding:30px 20px}
+.hero::before{content:"";position:absolute;inset:-40% -10% auto -10%;height:200px;
+  background:radial-gradient(closest-side, var(--accent), transparent 72%);opacity:.3;pointer-events:none}
+.err{background:rgba(255,107,116,.14);border:1px solid var(--red);color:#FFD9DC;
+  border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:.9rem}
+.pill{display:inline-block;background:var(--surface-3);color:var(--dim);border-radius:99px;
+  padding:5px 12px;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 
-/* turn header */
-.turnbar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
-.who{font-family:"Archivo Expanded";font-weight:900;font-size:1.6rem}
-.count{color:var(--dim);font-size:.9rem}
+input,select{font:inherit;width:100%;padding:14px;border-radius:14px;border:1.5px solid var(--edge);
+  background:var(--surface);color:var(--ink);margin-bottom:10px;appearance:none}
+input:focus,select:focus{outline:0;border-color:var(--accent)}
+input::placeholder{color:#7F6CB5}
+label{display:block;font-size:.8rem;color:var(--dim);margin-bottom:6px;font-weight:600}
+.seg{display:flex;gap:7px;margin-bottom:12px}
+.seg button{flex:1;background:var(--surface);color:var(--dim);border:1.5px solid var(--edge);
+  margin:0;padding:12px 6px;font-size:.92rem;border-radius:13px}
+.seg button.on{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 
-/* timer */
-.timer{font-family:"Archivo Expanded";font-weight:900;font-size:3.6rem;line-height:1;
-  text-align:center;font-variant-numeric:tabular-nums;margin:4px 0 2px}
-.bar{height:6px;border-radius:99px;background:var(--panel-2);overflow:hidden;margin-bottom:14px}
-.bar i{display:block;height:100%;background:var(--amber);width:100%;transition:width .25s linear}
-.timer.low{color:var(--pink)}
-.bar.low i{background:var(--pink)}
+.steps{counter-reset:s;padding:0;list-style:none;margin:0 0 14px}
+.steps li{counter-increment:s;position:relative;padding-left:34px;margin-bottom:13px;color:var(--dim);font-size:.92rem}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:23px;height:23px;border-radius:50%;
+  background:var(--surface-3);color:var(--gold);font-size:.74rem;font-weight:800;display:grid;place-items:center}
 
-/* timeline */
-.tl{display:flex;flex-direction:column;gap:0;margin:6px 0 14px}
-.slot{width:100%;border:1.5px dashed var(--edge);background:transparent;color:var(--dim);
-  border-radius:12px;padding:11px;font-size:.82rem;margin:5px 0}
-.slot.sel{border-style:solid;border-color:var(--amber);background:rgba(255,179,59,.14);color:var(--amber);font-weight:800}
-.yearcard{display:flex;align-items:center;gap:12px;background:var(--panel-2);border-radius:14px;padding:11px 14px}
-.yearcard .y{font-family:"Archivo Expanded";font-weight:900;font-size:1.45rem;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.yearcard .t{font-size:.8rem;color:var(--dim);line-height:1.25;overflow:hidden}
-.yearcard .t b{display:block;color:var(--ink);font-weight:600}
+.av{display:grid;place-items:center;border-radius:50%;flex:0 0 auto;
+  background:var(--c,var(--surface-3));box-shadow:0 0 0 2px rgba(255,255,255,.13) inset}
+.av.s{width:40px;height:40px;font-size:20px}
+.av.m{width:52px;height:52px;font-size:26px}
+.av.l{width:84px;height:84px;font-size:42px}
+.prow{display:flex;gap:9px;align-items:center;margin-bottom:9px}
+.prow input{margin:0;flex:1 1 auto;min-width:0}
+.prow .av{cursor:pointer}
+.prow .x{width:44px;flex:0 0 44px;background:var(--surface-2);color:var(--dim);padding:14px 0;margin:0;border-radius:13px}
+.picker{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;background:var(--surface);
+  border:1.5px solid var(--edge);border-radius:16px;padding:10px;margin:0 0 10px}
+.picker button{margin:0;padding:0;aspect-ratio:1;border-radius:12px;background:var(--surface-2);
+  font-size:21px;display:grid;place-items:center;border:1.5px solid transparent}
+.picker button.on{border-color:var(--accent);background:var(--surface-3)}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:8px}
+.swatches button{margin:0;padding:0;aspect-ratio:1;border-radius:50%;border:2.5px solid transparent}
+.swatches button.on{border-color:#fff}
 
-/* reveal */
-.reveal{text-align:center;padding:26px 18px}
-.bigyear{font-family:"Archivo Expanded";font-weight:900;font-size:4.6rem;line-height:.95;
-  font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin:0 0 4px}
-.verdict{font-family:"Archivo Expanded";font-weight:900;font-size:1.2rem;margin-bottom:10px}
+.turnbar{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.turnbar .who{font-family:"Archivo Expanded";font-weight:900;font-size:1.3rem;flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.turnbar .count{color:var(--dim);font-size:.84rem;font-weight:700}
+.timer{font-family:"Archivo Expanded";font-weight:900;font-size:3.9rem;line-height:1;text-align:center;
+  font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin:2px 0 6px;color:var(--accent)}
+.timer.low{color:var(--magenta);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.55}}
+.bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--magenta));
+  width:100%;transition:width .25s linear}
+.vinyl{width:96px;height:96px;margin:2px auto 14px;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%, var(--accent) 0 12%, #140B2B 12% 15%,
+    #241444 15% 23%, #1B0F36 23% 28%, #241444 28% 36%, #1B0F36 36% 42%,
+    #241444 42% 51%, #1B0F36 51% 58%, #251546 58% 100%);
+  box-shadow:0 10px 30px rgba(0,0,0,.4), 0 0 0 1px var(--edge);animation:spin 3.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.tl{margin:4px 0 16px}
+.slot{width:100%;border:2px dashed var(--edge);background:transparent;color:var(--dim);
+  border-radius:14px;padding:12px;font-size:.82rem;margin:7px 0;font-weight:600}
+.slot.sel{border-style:solid;border-color:var(--accent);background:rgba(255,255,255,.07);
+  color:var(--accent);font-weight:800}
+.yearcard{display:flex;align-items:center;gap:13px;background:var(--surface-2);border-radius:16px;
+  padding:12px 15px;border-left:4px solid var(--accent)}
+.yearcard .y{font-family:"Archivo Expanded";font-weight:900;font-size:1.5rem;font-variant-numeric:tabular-nums}
+.yearcard .t{font-size:.79rem;color:var(--dim);line-height:1.3;overflow:hidden}
+.yearcard .t b{display:block;color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sticky{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:5;
+  background:linear-gradient(180deg,transparent,var(--bg) 42%);padding-top:18px}
+
+.bigyear{font-family:"Archivo Expanded";font-weight:900;font-size:5rem;line-height:.92;
+  font-variant-numeric:tabular-nums;letter-spacing:-.04em;margin:2px 0 6px;
+  animation:pop .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.verdict{font-family:"Archivo Expanded";font-weight:900;font-size:1.15rem;margin-bottom:12px}
 .ok{color:var(--mint)} .no{color:var(--red)}
-.songname{font-weight:800;font-size:1.05rem;margin-bottom:2px}
-.artist{color:var(--dim);margin-bottom:0}
-
-/* scores */
-.score{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--edge);font-size:.95rem}
-.score:last-child{border-bottom:0}
-.score .n{font-variant-numeric:tabular-nums;color:var(--amber);font-weight:800}
-.lead-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);display:inline-block;margin-right:7px}
+.songname{font-weight:700;font-size:1.05rem;margin-bottom:2px}
+.artist{color:var(--dim);margin:0;font-size:.95rem}
 .toggle{display:flex;gap:8px;margin-bottom:12px}
-.toggle button{background:var(--panel-2);color:var(--dim);border:1.5px solid var(--edge);margin:0;
-  padding:11px;font-size:.85rem;border-radius:12px}
-.toggle button.on{background:rgba(91,227,166,.16);border-color:var(--mint);color:var(--mint)}
-.spin{display:inline-block;width:15px;height:15px;border:2px solid var(--edge);border-top-color:var(--amber);
-  border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:8px}
-@keyframes sp{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.spin{animation:none}.bar i{transition:none}}
+.toggle button{background:var(--surface-2);color:var(--dim);border:1.5px solid var(--edge);margin:0;
+  padding:13px;font-size:.88rem;border-radius:14px}
+.toggle button.on{background:rgba(91,227,166,.17);border-color:var(--mint);color:var(--mint)}
+
+.score{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--edge)}
+.score:last-child{border-bottom:0}
+.score .nm{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score .n{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.1rem}
+.score .b{font-size:.74rem;color:var(--dim);font-weight:600}
+.dots{display:flex;gap:4px;flex-wrap:wrap}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--surface-3)}
+.dots i.f{background:var(--c,var(--gold))}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid var(--edge);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:9px}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 </style>
 </head>
 <body>
 <div id="app"><div class="card"><span class="spin"></span>Loading…</div></div>
-
 <script>
 "use strict";
-/* ─────────────────────────── config & tiny helpers ─────────────────────────── */
-const SCOPES = "playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state";
+/* ══════════ constants ══════════ */
+const SCOPES   = "playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state";
 const REDIRECT = location.origin + location.pathname;
-const LS = {
-  cid:"rw.clientId", tok:"rw.token", game:"rw.game", pl:"rw.playlist", mb:"rw.mb"
-};
-const $ = (h) => { const d=document.createElement("div"); d.innerHTML=h.trim(); return d.firstChild; };
-const app = document.getElementById("app");
-const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
-const load = (k,d) => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):d; } catch(e){ return d; } };
+const LS = { cid:"rw.clientId", tok:"rw.token", game:"rw.game", pl:"rw.playlist", mb:"rw.mb" };
+
+const COLORS = ["#FF3D9A","#FF8A3D","#FFD23D","#9BE564","#35E0D4","#5B9BFF",
+                "#B06BFF","#FF6B74","#5BE3A6","#F2A0FF","#FFB86B","#7FD1FF"];
+const INK    = ["#3B0020","#331400","#2A1F00","#17290A","#002E2B","#001B42",
+                "#1E0040","#3B0005","#00291A","#3A0040","#331C00","#002234"];
+const AVATARS = ["🎸","🎤","🎧","🪩","🥁","🎹","🎺","🎷","📻","💿","📼","🕺",
+                 "💃","🦩","🦊","🐙","🐸","🦄","👽","🤖","🌮","🍕","⚡","🔥"];
+
+/* ══════════ helpers ══════════ */
+const $ = id => document.getElementById(id);
+const app = $("app");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const save = (k,v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+const load = (k,d) => { try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } };
+const drop = k => { try{ localStorage.removeItem(k); }catch(e){} };
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const buzz = p => { try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
 let ERR = "";
-
+const fail = m => { ERR = m; };
 function render(html){
-  app.innerHTML = (ERR ? `<div class="err">${esc(ERR)}</div>` : "") + html;
+  app.innerHTML = (ERR ? '<div class="err">'+esc(ERR)+'</div>' : "") + html;
   ERR = "";
+  window.scrollTo(0,0);
 }
-function fail(msg){ ERR = msg; }
+function accent(i){
+  const r = document.documentElement.style;
+  r.setProperty("--accent", COLORS[i % COLORS.length]);
+  r.setProperty("--accent-ink", INK[i % INK.length]);
+}
+const resetAccent = () => accent(2);
 
-/* ─────────────────────────── Spotify auth (PKCE, no server) ─────────────────────────── */
+/* ══════════ Spotify auth (PKCE — no server, no secret) ══════════ */
 async function sha256(str){
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
     .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 }
 function randStr(n){
   const a = new Uint8Array(n); crypto.getRandomValues(a);
-  return Array.from(a, b => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("");
+  return Array.from(a, b => "abcdefghijklmnopqrstuvwxyz0123456789"[b%36]).join("");
 }
 async function beginLogin(){
   const cid = load(LS.cid,"");
-  if(!cid){ fail("Add your Spotify Client ID first."); return draw(); }
-  const verifier = randStr(64);
-  sessionStorage.setItem("rw.verifier", verifier);
-  const p = new URLSearchParams({
-    client_id: cid, response_type: "code", redirect_uri: REDIRECT,
-    scope: SCOPES, code_challenge_method: "S256", code_challenge: await sha256(verifier)
+  if(!cid){ fail("Paste your Spotify Client ID first."); return draw(); }
+  const v = randStr(64);
+  try{ sessionStorage.setItem("rw.verifier", v); }catch(e){}
+  location.href = "https://accounts.spotify.com/authorize?" + new URLSearchParams({
+    client_id:cid, response_type:"code", redirect_uri:REDIRECT, scope:SCOPES,
+    code_challenge_method:"S256", code_challenge: await sha256(v)
   });
-  location.href = "https://accounts.spotify.com/authorize?" + p;
 }
 async function finishLogin(code){
-  const verifier = sessionStorage.getItem("rw.verifier");
-  const res = await fetch("https://accounts.spotify.com/api/token", {
+  const v = sessionStorage.getItem("rw.verifier") || "";
+  const res = await fetch("https://accounts.spotify.com/api/token",{
     method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"},
-    body: new URLSearchParams({
-      client_id: load(LS.cid,""), grant_type:"authorization_code", code,
-      redirect_uri: REDIRECT, code_verifier: verifier || ""
-    })
+    body:new URLSearchParams({ client_id:load(LS.cid,""), grant_type:"authorization_code",
+      code:code, redirect_uri:REDIRECT, code_verifier:v })
   });
   const j = await res.json();
-  if(!res.ok) throw new Error(j.error_description || "Login failed. Check the redirect URI matches exactly.");
+  if(!res.ok) throw new Error(j.error_description || "Login failed — check the redirect URI matches exactly.");
   j.expires_at = Date.now() + (j.expires_in-60)*1000;
   save(LS.tok, j);
 }
 async function refresh(){
   const t = load(LS.tok,null);
-  if(!t?.refresh_token) throw new Error("Session expired. Log in again.");
-  const res = await fetch("https://accounts.spotify.com/api/token", {
+  if(!t || !t.refresh_token){ drop(LS.tok); throw new Error("Session expired. Log in again."); }
+  const res = await fetch("https://accounts.spotify.com/api/token",{
     method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"},
-    body: new URLSearchParams({ client_id: load(LS.cid,""), grant_type:"refresh_token", refresh_token: t.refresh_token })
+    body:new URLSearchParams({ client_id:load(LS.cid,""), grant_type:"refresh_token", refresh_token:t.refresh_token })
   });
   const j = await res.json();
-  if(!res.ok){ localStorage.removeItem(LS.tok); throw new Error("Session expired. Log in again."); }
+  if(!res.ok){ drop(LS.tok); throw new Error("Session expired. Log in again."); }
   j.refresh_token = j.refresh_token || t.refresh_token;
   j.expires_at = Date.now() + (j.expires_in-60)*1000;
   save(LS.tok, j);
@@ -189,501 +251,615 @@ async function refresh(){
 async function token(){
   const t = load(LS.tok,null);
   if(!t) throw new Error("Not logged in.");
-  if(Date.now() > t.expires_at) return refresh();
-  return t.access_token;
+  return Date.now() > t.expires_at ? refresh() : t.access_token;
 }
-const loggedIn = () => !!load(LS.tok,null);
+function loggedIn(){ return !!load(LS.tok,null); }
 
-/* One API helper. Retries once on 401, honours Retry-After on 429. */
-async function api(path, opts={}, retry=true){
-  const res = await fetch("https://api.spotify.com/v1"+path, {
-    ...opts,
-    headers:{ Authorization:"Bearer "+await token(), "Content-Type":"application/json", ...(opts.headers||{}) }
-  });
-  if(res.status === 401 && retry){ await refresh(); return api(path, opts, false); }
-  if(res.status === 429){
-    const wait = Number(res.headers.get("Retry-After")||2);
+async function api(path, opts, retry){
+  opts = opts || {}; retry = retry !== false;
+  const headers = Object.assign({ Authorization:"Bearer "+await token(), "Content-Type":"application/json" }, opts.headers||{});
+  const res = await fetch("https://api.spotify.com/v1"+path, Object.assign({}, opts, { headers:headers }));
+  if(res.status===401 && retry){ await refresh(); return api(path,opts,false); }
+  if(res.status===429){
     const body = await res.json().catch(()=>({}));
-    if(body?.error?.reason === "QUOTA_EXCEEDED")
-      throw new Error("Spotify daily quota hit for your developer account. Try again tomorrow.");
-    if(retry){ await sleep((wait+1)*1000); return api(path, opts, false); }
-    throw new Error("Spotify is rate-limiting the app. Wait a moment.");
+    if(body && body.error && body.error.reason==="QUOTA_EXCEEDED")
+      throw new Error("Your Spotify developer account hit its daily quota. Try again tomorrow.");
+    if(retry){ await sleep((Number(res.headers.get("Retry-After")||2)+1)*1000); return api(path,opts,false); }
+    throw new Error("Spotify is rate-limiting the app. Give it a minute.");
   }
-  if(res.status === 204) return null;
+  if(res.status===204) return null;
   const j = await res.json().catch(()=>null);
-  if(!res.ok) throw new Error(j?.error?.message || ("Spotify error "+res.status));
+  if(!res.ok) throw new Error((j && j.error && j.error.message) || ("Spotify error "+res.status));
   return j;
 }
 
-/* ─────────────────────────── years ─────────────────────────── */
-/* Spotify gives the release year of the album a track sits on, so a 1975 song on a
-   2011 remaster reads 2011. Two corrections: the ISRC year (free, offline) and
-   MusicBrainz's earliest release date (one network call, optional). */
+/* ══════════ release years ══════════
+   Spotify reports the year of the album a track sits on, so a 1975 song on a 2011
+   remaster reads 2011. Corrected with the ISRC year (offline) and, optionally,
+   MusicBrainz's earliest known release.                                            */
 function isrcYear(isrc){
   if(!isrc || isrc.length < 7) return null;
-  const yy = parseInt(isrc.slice(5,7), 10);
+  const yy = parseInt(isrc.slice(5,7),10);
   if(isNaN(yy)) return null;
-  const nowYY = new Date().getFullYear() % 100;
+  const now = new Date().getFullYear(), nowYY = now % 100;
   const y = yy <= nowYY ? 2000+yy : 1900+yy;
-  return (y >= 1900 && y <= new Date().getFullYear()) ? y : null;
+  return (y>=1900 && y<=now) ? y : null;
 }
 async function mbYear(isrc){
-  if(!isrc) return null;
   try{
-    const res = await fetch(`https://musicbrainz.org/ws/2/isrc/${encodeURIComponent(isrc)}?inc=releases&fmt=json`,
-      { headers:{ Accept:"application/json" } });
+    const ctl = new AbortController();
+    const to = setTimeout(()=>ctl.abort(), 4500);
+    const res = await fetch("https://musicbrainz.org/ws/2/isrc/"+encodeURIComponent(isrc)+"?inc=releases&fmt=json",
+      { headers:{Accept:"application/json"}, signal: ctl.signal });
+    clearTimeout(to);
     if(!res.ok) return null;
     const j = await res.json();
     let best = null;
-    for(const rec of (j.recordings||[])){
-      for(const d of [rec["first-release-date"], ...(rec.releases||[]).map(r=>r.date)]){
-        const y = parseInt(String(d||"").slice(0,4),10);
-        if(y >= 1900 && (best===null || y < best)) best = y;
+    const recs = j.recordings || [];
+    for(let i=0;i<recs.length;i++){
+      const rec = recs[i];
+      const dates = [rec["first-release-date"]].concat((rec.releases||[]).map(r=>r.date));
+      for(let k=0;k<dates.length;k++){
+        const y = parseInt(String(dates[k]||"").slice(0,4),10);
+        if(y>=1900 && (best===null || y<best)) best = y;
       }
     }
     return best;
   }catch(e){ return null; }
 }
-async function resolveYear(track){
-  const album = parseInt(String(track.album?.release_date||"").slice(0,4),10) || null;
-  const isrc  = track.external_ids?.isrc || null;
-  const iy    = isrcYear(isrc);
+async function resolveYear(t){
+  const album = parseInt(String(t.release_date||"").slice(0,4),10) || null;
+  const iy = isrcYear(t.isrc);
   let year = album, src = "album";
   if(iy && (!album || iy < album)){ year = iy; src = "isrc"; }
-  if(load(LS.mb,true) && isrc){
-    const my = await mbYear(isrc);
+  if(load(LS.mb,true) && t.isrc){
+    const my = await mbYear(t.isrc);
     if(my && (!year || my < year)){ year = my; src = "musicbrainz"; }
   }
-  return { year, src, isrc };
+  return { year:year, src:src };
 }
 
-/* ─────────────────────────── game state ─────────────────────────── */
-let G = load(LS.game, null);   // {players:[{name,cards:[{year,name,artist,id}],bonus}], turn, target, used:[]}
-let POOL = load(LS.pl, null);  // {id,name,tracks:[{id,uri,name,artist}]}
-let VIEW = "boot";
-let T = null;                  // active turn: {track, year, src, slot, locked, secs, timerId, result}
-let DEVICES = [], DEVICE = null;
-
-const saveGame = () => save(LS.game, G);
-const cur = () => G.players[G.turn];
-const sortedCards = p => [...p.cards].sort((a,b)=>a.year-b.year);
-
-/* ─────────────────────────── screens ─────────────────────────── */
-function draw(){
-  if(VIEW==="boot")    return viewBoot();
-  if(VIEW==="setup")   return viewSetup();
-  if(VIEW==="playlist")return viewPlaylist();
-  if(VIEW==="players") return viewPlayers();
-  if(VIEW==="dealing") return viewDealing();
-  if(VIEW==="handoff") return viewHandoff();
-  if(VIEW==="bonus")   return viewBonus();
-  if(VIEW==="turn")    return viewTurn();
-  if(VIEW==="reveal")  return viewReveal();
-  if(VIEW==="win")     return viewWin();
-  if(VIEW==="scores")  return viewScores();
-}
-
-/* — boot / connect — */
-function viewBoot(){
-  const cid = load(LS.cid,"");
-  render(`
-    <h1>Rewind</h1>
-    <p class="lead">A song plays. Guess the year, slot it into your timeline, pass the phone. First to ten cards wins.</p>
-    <div class="card">
-      <h2>Connect Spotify</h2>
-      <ol class="steps">
-        <li>Open <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a> and create an app.</li>
-        <li>Set the Redirect URI to exactly <code>${esc(REDIRECT)}</code></li>
-        <li>Tick the Web API and Web Playback SDK boxes, save, then copy the Client ID.</li>
-      </ol>
-      <label for="cid">Client ID</label>
-      <input id="cid" value="${esc(cid)}" placeholder="32 characters" autocomplete="off" spellcheck="false">
-      <button id="go">${loggedIn() ? "Reconnect Spotify" : "Log in with Spotify"}</button>
-      ${loggedIn() ? `<button class="ghost" id="cont">Continue to the game</button>` : ""}
-      <p class="note">Your Spotify account needs Premium, and the account must be added as a user inside that dashboard app. Up to five accounts — but only the host logs in here, so one is enough.</p>
-    </div>
-  `);
-  const inp = document.getElementById("cid");
-  inp.addEventListener("input", ()=>save(LS.cid, inp.value.trim()));
-  document.getElementById("go").onclick = ()=>{ save(LS.cid, inp.value.trim()); beginLogin(); };
-  const c = document.getElementById("cont");
-  if(c) c.onclick = ()=>{ VIEW = G ? "handoff" : "setup"; draw(); };
-}
-
-/* — setup hub — */
-function viewSetup(){
-  render(`
-    <h1>New game</h1>
-    <div class="card">
-      <h2>1. Pick the music</h2>
-      <p>${POOL ? esc(POOL.name)+" — "+POOL.tracks.length+" songs ready" : "Choose one of your own playlists."}</p>
-      <button class="${POOL?"ghost":""}" id="pl">${POOL?"Change playlist":"Choose a playlist"}</button>
-    </div>
-    <div class="card">
-      <h2>2. Add the players</h2>
-      <p>Two to eight people, one phone between you.</p>
-      <button class="${POOL?"":"ghost"}" id="pp" ${POOL?"":"disabled"}>Add players</button>
-    </div>
-    <p class="note">Spotify only hands over the songs inside playlists you own or collaborate on. If you want to play someone else's Hitster list, copy the songs into a playlist of your own first.</p>
-  `);
-  document.getElementById("pl").onclick = ()=>{ VIEW="playlist"; draw(); loadPlaylists(); };
-  document.getElementById("pp").onclick = ()=>{ VIEW="players"; draw(); };
-}
-
-/* — playlist picker — */
+/* ══════════ state ══════════ */
+let G     = load(LS.game, null);
+let POOL  = load(LS.pl, null);
+let VIEW  = "boot";
+let T     = null;
+let DEVICE = null;
 let PLAYLISTS = null;
+let DRAFT = null;
+let PICKER = null;
+
+function saveGame(){ save(LS.game, G); }
+function cur(){ return G.players[G.turn]; }
+function sorted(p){ return p.cards.slice().sort((a,b)=>a.year-b.year); }
+function stopTimer(){ if(T && T.timerId){ clearInterval(T.timerId); T.timerId = null; } }
+
+/* ══════════ router ══════════ */
+function draw(){
+  const VIEWS = { boot:vBoot, setup:vSetup, playlist:vPlaylist, players:vPlayers, dealing:vDealing,
+                  handoff:vHandoff, turn:vTurn, reveal:vReveal, bonus:vBonus, scores:vScores, win:vWin };
+  (VIEWS[VIEW] || vBoot)();
+}
+
+/* ══════════ connect ══════════ */
+function vBoot(){
+  resetAccent();
+  const cid = load(LS.cid,"");
+  render(
+    '<div class="center" style="padding:10px 0 2px">'+
+      '<div class="vinyl" style="animation-duration:7s"></div>'+
+      '<h1 style="margin-bottom:.15em">Rewind</h1>'+
+      '<p class="lead">A song plays. Guess the year, slot it into your timeline, pass the phone.</p>'+
+    '</div>'+
+    '<div class="card">'+
+      '<span class="pill">One-time setup</span>'+
+      '<h2 style="margin-top:12px">Connect Spotify</h2>'+
+      '<ol class="steps">'+
+        '<li>At <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a>, create an app.</li>'+
+        '<li>Set its Redirect URI to exactly <code>'+esc(REDIRECT)+'</code></li>'+
+        '<li>Tick Web API, save, then copy the Client ID.</li>'+
+      '</ol>'+
+      '<label for="cid">Client ID</label>'+
+      '<input id="cid" value="'+esc(cid)+'" placeholder="32 characters" autocomplete="off" spellcheck="false">'+
+      '<button id="go">'+(loggedIn()?"Reconnect Spotify":"Log in with Spotify")+'</button>'+
+      (loggedIn()?'<button class="ghost" id="cont">Continue to the game</button>':"")+
+      '<p class="note">Needs Premium, and your account must be listed under User Management in that dashboard app. Only the host ever logs in.</p>'+
+    '</div>');
+  $("cid").addEventListener("input", e => save(LS.cid, e.target.value.trim()));
+  $("go").onclick = function(){ save(LS.cid, $("cid").value.trim()); beginLogin(); };
+  if($("cont")) $("cont").onclick = function(){ VIEW = G ? "handoff" : "setup"; draw(); };
+}
+
+/* ══════════ setup hub ══════════ */
+function vSetup(){
+  resetAccent();
+  render(
+    '<h1>New game</h1>'+
+    '<div class="card">'+
+      '<span class="pill">Step one</span>'+
+      '<h2 style="margin-top:12px">Pick the music</h2>'+
+      '<p>'+(POOL ? '<b style="color:var(--ink)">'+esc(POOL.name)+'</b> — '+POOL.tracks.length+' songs loaded'
+                  : 'Choose one playlist. Only that playlist is used — your Liked Songs are never touched.')+'</p>'+
+      '<button class="'+(POOL?"ghost":"")+'" id="pl">'+(POOL?"Change playlist":"Choose a playlist")+'</button>'+
+    '</div>'+
+    '<div class="card">'+
+      '<span class="pill">Step two</span>'+
+      '<h2 style="margin-top:12px">Add the players</h2>'+
+      '<p>Two to twelve people, one phone between you.</p>'+
+      '<button class="'+(POOL?"":"ghost")+'" id="pp" '+(POOL?"":"disabled")+'>Set up players</button>'+
+    '</div>'+
+    (G?'<button class="ghost" id="resume">Resume the game in progress</button>':"")+
+    '<p class="note">Spotify only shares songs from playlists you own or collaborate on. To play someone else\'s list, copy the songs into one of your own first.</p>');
+  $("pl").onclick = function(){ VIEW="playlist"; PLAYLISTS=null; draw(); loadPlaylists(); };
+  $("pp").onclick = function(){ VIEW="players"; startDraft(); draw(); };
+  if($("resume")) $("resume").onclick = function(){ VIEW="handoff"; draw(); };
+}
+
+/* ══════════ playlists ══════════ */
 async function loadPlaylists(){
   try{
     const j = await api("/me/playlists?limit=50");
-    PLAYLISTS = j.items || [];
-    if(VIEW==="playlist") draw();
-  }catch(e){ fail(e.message); VIEW="playlist"; PLAYLISTS=[]; draw(); }
+    PLAYLISTS = (j && j.items) || [];
+  }catch(e){ fail(e.message); PLAYLISTS = []; }
+  if(VIEW==="playlist") draw();
 }
-function viewPlaylist(){
-  if(PLAYLISTS === null){
-    return render(`<h1>Your playlists</h1><div class="card"><span class="spin"></span>Asking Spotify…</div>`);
-  }
-  render(`
-    <h1>Your playlists</h1>
-    <p>Pick the one to draw songs from. Bigger and more varied is better — aim for 80+ songs spread across decades.</p>
-    <div class="card">
-      ${PLAYLISTS.length ? PLAYLISTS.map((p,i)=>`
-        <button class="ghost" data-i="${i}" style="text-align:left">
-          ${esc(p.name)} <span style="color:var(--dim);font-size:.85rem">· ${p.items?.total ?? p.tracks?.total ?? "?"} songs</span>
-        </button>`).join("")
-      : `<p>No playlists came back. Make one in Spotify, add songs, and reopen this.</p>`}
-      <button class="ghost" id="back">Back</button>
-    </div>
-  `);
-  document.getElementById("back").onclick = ()=>{ VIEW="setup"; draw(); };
-  app.querySelectorAll("[data-i]").forEach(b => b.onclick = ()=>choosePlaylist(PLAYLISTS[+b.dataset.i]));
+function vPlaylist(){
+  if(PLAYLISTS === null)
+    return render('<h1>Your playlists</h1><div class="card"><span class="spin"></span>Asking Spotify…</div>');
+  const rows = PLAYLISTS.length ? PLAYLISTS.map(function(p,i){
+      const total = (p.items && p.items.total) != null ? p.items.total
+                  : (p.tracks && p.tracks.total) != null ? p.tracks.total : "?";
+      return '<button class="ghost" data-i="'+i+'" style="text-align:left;display:flex;justify-content:space-between;gap:10px;align-items:center">'+
+               '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</span>'+
+               '<span class="note num" style="flex:0 0 auto">'+total+'</span></button>';
+    }).join("") : '<p>Nothing came back. Make a playlist in Spotify, add songs, then reopen this.</p>';
+  render(
+    '<h1>Your playlists</h1>'+
+    '<p>Pick the one this game draws from. Mix decades inside it — a playlist that is all one era turns every guess into a coin flip.</p>'+
+    '<div class="card">'+rows+'</div>'+
+    '<button class="ghost" id="back">Back</button>');
+  $("back").onclick = function(){ VIEW="setup"; draw(); };
+  app.querySelectorAll("[data-i]").forEach(function(b){ b.onclick = function(){ choosePlaylist(PLAYLISTS[+b.dataset.i]); }; });
 }
 async function choosePlaylist(p){
-  render(`<h1>${esc(p.name)}</h1><div class="card"><span class="spin"></span>Pulling in the songs…</div>`);
+  render('<h1>'+esc(p.name)+'</h1><div class="card"><span class="spin"></span>Pulling in the songs…</div>');
   try{
-    let tracks = [], offset = 0;
-    while(offset < 400){
-      const j = await api(`/playlists/${p.id}/items?limit=50&offset=${offset}`);
-      const items = j.items || j.items?.items || [];
+    const tracks = [], seen = {};
+    let offset = 0;
+    while(offset < 500){
+      const j = await api("/playlists/"+p.id+"/items?limit=50&offset="+offset);
+      const items = (j && Array.isArray(j.items)) ? j.items : [];
       if(!items.length) break;
-      for(const it of items){
-        const t = it.item || it.track;   // field was renamed in Feb 2026; accept both
-        if(!t || t.is_local || t.type !== "track" || !t.uri) continue;
-        tracks.push({ id:t.id, uri:t.uri, name:t.name, artist:(t.artists||[]).map(a=>a.name).join(", ") });
+      for(let i=0;i<items.length;i++){
+        const t = items[i].item || items[i].track;   /* field renamed Feb 2026 — accept both */
+        if(!t || t.is_local || !t.uri) continue;
+        if(t.type && t.type!=="track") continue;
+        if(!t.id || seen[t.id]) continue;
+        seen[t.id] = 1;
+        tracks.push({
+          id:t.id, uri:t.uri, name:t.name,
+          artist:(t.artists||[]).map(a=>a.name).join(", "),
+          release_date:(t.album && t.album.release_date) || null,
+          isrc:(t.external_ids && t.external_ids.isrc) || null
+        });
       }
-      offset += 50;
       if(!j.next) break;
+      offset += 50;
     }
-    const seen = new Set();
-    tracks = tracks.filter(t => t.id && !seen.has(t.id) && seen.add(t.id));
-    if(tracks.length < 12) throw new Error("That playlist has too few playable songs. Pick one with at least 30.");
-    POOL = { id:p.id, name:p.name, tracks };
+    if(tracks.length < 12) throw new Error("That playlist has too few playable songs — pick one with at least 30.");
+    POOL = { id:p.id, name:p.name, tracks:tracks };
     save(LS.pl, POOL);
     VIEW = "setup"; draw();
   }catch(e){
-    fail(e.message.includes("items") ? "Spotify won't share that playlist's songs — you can only use playlists you own or collaborate on." : e.message);
-    VIEW="playlist"; draw();
+    fail(/40[34]|not found/i.test(e.message)
+      ? "Spotify won't share that playlist's songs — you can only use playlists you own or collaborate on."
+      : e.message);
+    VIEW = "playlist"; draw();
   }
 }
 
-/* — players — */
-let NAMES = ["",""];
-function viewPlayers(){
-  render(`
-    <h1>Who's playing?</h1>
-    <div class="card">
-      <div class="plist">
-        ${NAMES.map((n,i)=>`
-          <div class="prow">
-            <input data-n="${i}" value="${esc(n)}" placeholder="Player ${i+1}" autocomplete="off" maxlength="14">
-            ${NAMES.length>2 ? `<button class="x" data-x="${i}" aria-label="Remove player">✕</button>`:""}
-          </div>`).join("")}
-      </div>
-      ${NAMES.length<8 ? `<button class="ghost" id="add">Add another player</button>`:""}
-      <label for="target">Cards needed to win</label>
-      <select id="target">
-        ${[6,8,10,12].map(n=>`<option value="${n}" ${n===10?"selected":""}>${n} cards</option>`).join("")}
-      </select>
-      <div class="toggle">
-        <button id="mb" class="${load(LS.mb,true)?"on":""}">Accurate years: ${load(LS.mb,true)?"on":"off"}</button>
-      </div>
-      <p class="note">Accurate years checks each song against MusicBrainz so remasters and greatest-hits albums don't report the wrong decade. It adds about a second before each song.</p>
-      <button id="start">Deal the first cards</button>
-      <button class="ghost" id="back">Back</button>
-    </div>
-  `);
-  app.querySelectorAll("[data-n]").forEach(i => i.addEventListener("input", ()=>{ NAMES[+i.dataset.n]=i.value; }));
-  app.querySelectorAll("[data-x]").forEach(b => b.onclick = ()=>{ NAMES.splice(+b.dataset.x,1); draw(); });
-  const a = document.getElementById("add");
-  if(a) a.onclick = ()=>{ NAMES.push(""); draw(); };
-  document.getElementById("mb").onclick = ()=>{ save(LS.mb, !load(LS.mb,true)); draw(); };
-  document.getElementById("back").onclick = ()=>{ VIEW="setup"; draw(); };
-  document.getElementById("start").onclick = ()=>{
-    const names = NAMES.map((n,i)=>n.trim()||`Player ${i+1}`);
-    G = {
-      players: names.map(n=>({name:n, cards:[], bonus:0})),
-      turn: 0, target: +document.getElementById("target").value, used: []
-    };
+/* ══════════ players ══════════ */
+function newRow(i){ return { name:"", avatar:i % AVATARS.length, color:i % COLORS.length }; }
+function startDraft(){ if(!DRAFT) DRAFT = { rows:[newRow(0), newRow(1)], target:8, secs:30 }; }
+function vPlayers(){
+  resetAccent();
+  const d = DRAFT;
+  const rows = d.rows.map(function(r,i){
+    let html =
+      '<div class="prow">'+
+        '<div class="av m" data-av="'+i+'" style="--c:'+COLORS[r.color]+'" role="button" aria-label="Change icon">'+AVATARS[r.avatar]+'</div>'+
+        '<input data-n="'+i+'" value="'+esc(r.name)+'" placeholder="Player '+(i+1)+'" maxlength="14" autocomplete="off">'+
+        (d.rows.length>2?'<button class="x" data-x="'+i+'" aria-label="Remove player">✕</button>':"")+
+      '</div>';
+    if(PICKER===i){
+      html += '<div class="swatches">'+COLORS.map(function(c,ci){
+          return '<button data-c="'+i+':'+ci+'" class="'+(r.color===ci?"on":"")+'" style="background:'+c+'" aria-label="Colour '+(ci+1)+'"></button>';
+        }).join("")+'</div>'+
+        '<div class="picker">'+AVATARS.map(function(a,ai){
+          return '<button data-a="'+i+':'+ai+'" class="'+(r.avatar===ai?"on":"")+'">'+a+'</button>';
+        }).join("")+'</div>';
+    }
+    return html;
+  }).join("");
+
+  render(
+    '<h1>Who\'s playing?</h1>'+
+    '<p>Tap a face to change the icon and colour. Two to twelve players.</p>'+
+    '<div class="card">'+rows+
+      (d.rows.length<12?'<button class="ghost" id="add">Add another player</button>'
+                       :'<p class="note">Twelve is the maximum.</p>')+
+    '</div>'+
+    '<div class="card">'+
+      '<label>Cards needed to win</label>'+
+      '<div class="seg">'+[6,8,10,12].map(n=>'<button data-t="'+n+'" class="'+(d.target===n?"on":"")+'">'+n+'</button>').join("")+'</div>'+
+      '<label>Seconds per song</label>'+
+      '<div class="seg">'+[20,30,45].map(n=>'<button data-s="'+n+'" class="'+(d.secs===n?"on":"")+'">'+n+'s</button>').join("")+'</div>'+
+      '<label>Year accuracy</label>'+
+      '<div class="seg">'+
+        '<button data-m="1" class="'+(load(LS.mb,true)?"on":"")+'">Check MusicBrainz</button>'+
+        '<button data-m="0" class="'+(load(LS.mb,true)?"":"on")+'">Spotify only</button>'+
+      '</div>'+
+      '<p class="note">Checking MusicBrainz stops remasters and greatest-hits albums reporting the wrong decade. Costs about a second before each song.</p>'+
+    '</div>'+
+    '<button id="start">Deal the first cards</button>'+
+    '<button class="ghost" id="back">Back</button>');
+
+  app.querySelectorAll("[data-n]").forEach(function(i){
+    i.addEventListener("input", function(e){ d.rows[+i.dataset.n].name = e.target.value; });
+  });
+  app.querySelectorAll("[data-av]").forEach(function(el){
+    el.onclick = function(){ const i=+el.dataset.av; PICKER = (PICKER===i?null:i); draw(); };
+  });
+  app.querySelectorAll("[data-x]").forEach(function(b){
+    b.onclick = function(){ d.rows.splice(+b.dataset.x,1); PICKER=null; draw(); };
+  });
+  app.querySelectorAll("[data-a]").forEach(function(b){
+    b.onclick = function(){ const q=b.dataset.a.split(":"); d.rows[+q[0]].avatar=+q[1]; draw(); };
+  });
+  app.querySelectorAll("[data-c]").forEach(function(b){
+    b.onclick = function(){ const q=b.dataset.c.split(":"); d.rows[+q[0]].color=+q[1]; draw(); };
+  });
+  if($("add")) $("add").onclick = function(){ d.rows.push(newRow(d.rows.length)); PICKER=null; draw(); };
+  app.querySelectorAll("[data-t]").forEach(function(b){ b.onclick = function(){ d.target=+b.dataset.t; draw(); }; });
+  app.querySelectorAll("[data-s]").forEach(function(b){ b.onclick = function(){ d.secs=+b.dataset.s; draw(); }; });
+  app.querySelectorAll("[data-m]").forEach(function(b){ b.onclick = function(){ save(LS.mb, b.dataset.m==="1"); draw(); }; });
+  $("back").onclick  = function(){ VIEW="setup"; PICKER=null; draw(); };
+  $("start").onclick = function(){
+    PICKER = null;
+    G = { players: d.rows.map(function(r,i){
+            return { name:(r.name||"").trim() || ("Player "+(i+1)), avatar:r.avatar, color:r.color, cards:[], bonus:0 };
+          }),
+          turn:0, target:d.target, secs:d.secs, used:[] };
     VIEW="dealing"; draw(); dealStarters();
   };
 }
 
-/* — deal one starting card each — */
+/* ══════════ dealing ══════════ */
 function drawTrack(){
-  const left = POOL.tracks.filter(t => !G.used.includes(t.id));
-  if(!left.length) return null;
-  return left[Math.floor(Math.random()*left.length)];
+  const left = POOL.tracks.filter(t => G.used.indexOf(t.id) === -1);
+  return left.length ? left[Math.floor(Math.random()*left.length)] : null;
 }
 async function dealStarters(){
   try{
-    for(const p of G.players){
-      let ok = false, tries = 0;
-      while(!ok && tries++ < 6){
+    for(let i=0;i<G.players.length;i++){
+      const p = G.players[i];
+      let placed = false, tries = 0;
+      while(!placed && tries++ < 8){
         const t = drawTrack();
-        if(!t) throw new Error("Ran out of songs. Use a bigger playlist.");
+        if(!t) throw new Error("Ran out of songs — use a bigger playlist.");
         G.used.push(t.id);
-        const full = await api(`/tracks/${t.id}`);
-        const { year } = await resolveYear(full);
-        if(year){
-          p.cards.push({ year, name:t.name, artist:t.artist, id:t.id });
-          ok = true;
-        }
+        const r = await resolveYear(t);
+        if(r.year){ p.cards.push({ year:r.year, name:t.name, artist:t.artist, id:t.id }); placed = true; }
       }
-      if(!ok) throw new Error("Spotify isn't returning release dates right now.");
-      draw();
+      if(!placed) throw new Error("Spotify isn't returning release dates for these songs right now.");
+      if(VIEW==="dealing") draw();
     }
     saveGame();
     VIEW="handoff"; draw();
   }catch(e){ fail(e.message); VIEW="players"; draw(); }
 }
-function viewDealing(){
-  const done = G.players.filter(p=>p.cards.length).length;
-  render(`
-    <h1>Dealing</h1>
-    <div class="card">
-      <p class="lead"><span class="spin"></span>Everyone gets one song to anchor their timeline.</p>
-      ${G.players.map(p=>`<div class="score"><span>${esc(p.name)}</span>
-        <span class="n">${p.cards.length ? p.cards[0].year : "…"}</span></div>`).join("")}
-      <p class="note" style="margin-top:12px">${done} of ${G.players.length}</p>
-    </div>
-  `);
+function vDealing(){
+  render(
+    '<h1>Dealing</h1>'+
+    '<div class="card">'+
+      '<p class="lead"><span class="spin"></span>Everyone gets one song to anchor their timeline.</p>'+
+      G.players.map(function(p){
+        return '<div class="score">'+
+          '<div class="av s" style="--c:'+COLORS[p.color]+'">'+AVATARS[p.avatar]+'</div>'+
+          '<span class="nm">'+esc(p.name)+'</span>'+
+          '<span class="n num" style="color:'+COLORS[p.color]+'">'+(p.cards.length?p.cards[0].year:"…")+'</span>'+
+        '</div>';
+      }).join("")+
+    '</div>');
 }
 
-/* — handoff — */
-function viewHandoff(){
+/* ══════════ handoff ══════════ */
+function vHandoff(){
+  stopTimer();
   const p = cur();
-  render(`
-    <div class="card" style="text-align:center;padding:34px 20px">
-      <p class="note">Pass the phone to</p>
-      <div class="who" style="font-size:2.4rem;margin:6px 0 14px">${esc(p.name)}</div>
-      <p>${p.cards.length} of ${G.target} cards${p.bonus?` · ${p.bonus}/5 towards a bonus song`:""}</p>
-      <button id="go">I'm ready — play the song</button>
-      <button class="ghost small" id="sc" style="width:100%;margin-top:4px">See all scores</button>
-    </div>
-    <p class="note">Keep the phone face down while the song plays, or the title on your lock screen gives it away. Playing through a speaker works best.</p>
-  `);
-  document.getElementById("go").onclick = startTurn;
-  document.getElementById("sc").onclick = ()=>{ VIEW="scores"; draw(); };
+  accent(p.color);
+  let dots = "";
+  for(let i=0;i<G.target;i++) dots += '<i class="'+(i<p.cards.length?"f":"")+'"></i>';
+  render(
+    '<div class="card hero">'+
+      '<p class="note" style="margin-bottom:12px">Pass the phone to</p>'+
+      '<div class="av l" style="--c:'+COLORS[p.color]+';margin:0 auto 14px">'+AVATARS[p.avatar]+'</div>'+
+      '<div class="display" style="font-size:2.2rem">'+esc(p.name)+'</div>'+
+      '<p style="margin-bottom:10px">'+p.cards.length+' of '+G.target+' cards'+(p.bonus?' · '+p.bonus+'/5 to a bonus song':"")+'</p>'+
+      '<div class="dots" style="justify-content:center;margin-bottom:18px;--c:'+COLORS[p.color]+'">'+dots+'</div>'+
+      '<button id="go">I\'m ready — play the song</button>'+
+      '<button class="ghost tiny" id="sc" style="width:100%">Scores &amp; settings</button>'+
+    '</div>'+
+    '<p class="note center">Keep the phone face down while it plays — the title on your lock screen gives it away.</p>');
+  $("go").onclick = function(){ startTurn(0); };
+  $("sc").onclick = function(){ VIEW="scores"; draw(); };
 }
 
-/* — devices — */
+/* ══════════ playback ══════════ */
 async function pickDevice(){
   const j = await api("/me/player/devices");
-  DEVICES = j?.devices || [];
-  if(!DEVICES.length) throw new Error("No Spotify device is awake. Open Spotify, play any song for a second, then come back.");
-  DEVICE = (DEVICES.find(d=>d.is_active) || DEVICES[0]).id;
+  const ds = (j && j.devices) || [];
+  if(!ds.length) throw new Error("No Spotify device is awake. Open Spotify, play anything for a second, then come back.");
+  const active = ds.filter(d=>d.is_active)[0] || ds[0];
+  DEVICE = active.id;
   return DEVICE;
 }
-
-/* — the turn — */
-async function startTurn(){
-  render(`<div class="card"><span class="spin"></span>Cueing up a song…</div>`);
+async function playTrack(uri){
+  const body = function(){ return JSON.stringify({ device_id:DEVICE, uris:[uri], position_ms:0 }); };
   try{
     if(!DEVICE) await pickDevice();
+    await api("/me/player/play", { method:"PUT", body: body() });
+  }catch(e){
+    await pickDevice();                    /* the speaker may have gone to sleep */
+    await api("/me/player/play", { method:"PUT", body: body() });
+  }
+}
+function pause(){ return api("/me/player/pause",{method:"PUT"}).catch(function(){}); }
+
+/* ══════════ the turn ══════════ */
+async function startTurn(depth){
+  depth = depth || 0;
+  stopTimer();
+  accent(cur().color);
+  render('<div class="card center" style="padding:40px 20px"><div class="vinyl"></div><p class="lead"><span class="spin"></span>Cueing up a song…</p></div>');
+  try{
     const t = drawTrack();
-    if(!t){ fail("You've played every song in the playlist."); VIEW="win"; return draw(); }
+    if(!t){ fail("Every song in the playlist has been played."); VIEW="win"; return draw(); }
     G.used.push(t.id); saveGame();
-    const full = await api(`/tracks/${t.id}`);
-    const { year, src } = await resolveYear(full);
-    if(!year) return startTurn();            // no usable date — quietly draw another
-    T = { track:t, year, src, slot:null, locked:false, secs:30, result:null, gotTitle:false, gotArtist:false };
-    await api("/me/player/play", {
-      method:"PUT",
-      body: JSON.stringify({ device_id: DEVICE, uris:[t.uri], position_ms: 0 })
-    }).catch(async e => {
-      await pickDevice();
-      return api("/me/player/play", { method:"PUT", body: JSON.stringify({ device_id: DEVICE, uris:[t.uri], position_ms: 0 }) });
-    });
+    const r = await resolveYear(t);
+    if(!r.year){
+      if(depth > 5) throw new Error("Spotify isn't returning release dates right now.");
+      return startTurn(depth+1);           /* no usable date — quietly draw another */
+    }
+    await playTrack(t.uri);
+    T = { track:t, year:r.year, src:r.src, slot:null, secs:(G.secs||30),
+          result:null, gotTitle:false, gotArtist:false, timerId:null };
     VIEW="turn"; draw(); tick();
   }catch(e){ fail(e.message); VIEW="handoff"; draw(); }
 }
 function tick(){
-  clearInterval(T.timerId);
-  T.timerId = setInterval(()=>{
+  stopTimer();
+  T.timerId = setInterval(function(){
     T.secs--;
-    const el = document.getElementById("timer"), bar = document.getElementById("bar");
-    if(el){
-      el.textContent = T.secs;
-      el.classList.toggle("low", T.secs<=10);
-      bar.parentElement.classList.toggle("low", T.secs<=10);
-      bar.style.width = (T.secs/30*100)+"%";
-    }
-    if(T.secs<=0){ clearInterval(T.timerId); lockIn(); }
+    const el = $("timer"), bar = $("bar");
+    if(!el) return;                         /* the view changed under us */
+    el.textContent = T.secs;
+    if(T.secs <= 10) el.classList.add("low"); else el.classList.remove("low");
+    if(bar) bar.style.width = Math.max(0, T.secs/(G.secs||30)*100) + "%";
+    if(T.secs > 0 && T.secs <= 5) buzz(18);
+    if(T.secs <= 0){ stopTimer(); buzz([60,50,60]); lockIn(); }
   }, 1000);
 }
-function viewTurn(){
-  const p = cur();
-  const cards = sortedCards(p);
-  render(`
-    <div class="turnbar">
-      <span class="who">${esc(p.name)}</span>
-      <span class="count">${p.cards.length}/${G.target}</span>
-    </div>
-    <div class="timer" id="timer">${T.secs}</div>
-    <div class="bar"><i id="bar" style="width:${T.secs/30*100}%"></i></div>
-    <p>Say the title and artist out loud, then choose where this song sits in your timeline.</p>
-    <div class="tl">
-      ${cards.map((c,i)=>`
-        <button class="slot" data-s="${i}">${i===0 ? "Before "+c.year : "Between "+cards[i-1].year+" and "+c.year}</button>
-        <div class="yearcard"><span class="y">${c.year}</span><span class="t"><b>${esc(c.name)}</b>${esc(c.artist)}</span></div>
-      `).join("")}
-      <button class="slot" data-s="${cards.length}">After ${cards[cards.length-1].year}</button>
-    </div>
-    <button id="lock" ${T.slot===null?"disabled":""}>Lock it in</button>
-  `);
-  app.querySelectorAll("[data-s]").forEach(b => b.onclick = ()=>{
-    T.slot = +b.dataset.s;
-    app.querySelectorAll(".slot").forEach(x=>x.classList.remove("sel"));
-    b.classList.add("sel");
-    document.getElementById("lock").disabled = false;
+function vTurn(){
+  const p = cur(), cards = sorted(p);
+  let tl = "";
+  for(let i=0;i<cards.length;i++){
+    const c = cards[i];
+    tl += '<button class="slot" data-s="'+i+'">'+(i===0?("Before "+c.year):("Between "+cards[i-1].year+" and "+c.year))+'</button>'+
+          '<div class="yearcard"><span class="y num">'+c.year+'</span>'+
+          '<span class="t"><b>'+esc(c.name)+'</b>'+esc(c.artist)+'</span></div>';
+  }
+  tl += '<button class="slot" data-s="'+cards.length+'">After '+cards[cards.length-1].year+'</button>';
+  render(
+    '<div class="turnbar">'+
+      '<div class="av s" style="--c:'+COLORS[p.color]+'">'+AVATARS[p.avatar]+'</div>'+
+      '<span class="who">'+esc(p.name)+'</span>'+
+      '<span class="count num">'+p.cards.length+'/'+G.target+'</span>'+
+    '</div>'+
+    '<div class="timer '+(T.secs<=10?"low":"")+'" id="timer">'+T.secs+'</div>'+
+    '<div class="bar"><i id="bar" style="width:'+(T.secs/(G.secs||30)*100)+'%"></i></div>'+
+    '<p class="center" style="margin-bottom:6px">Say the title and artist out loud, then pick the gap.</p>'+
+    '<div class="tl">'+tl+'</div>'+
+    '<button class="ghost tiny" id="skip" style="width:100%;margin-bottom:12px">Skip this song — nobody could place it</button>'+
+    '<div class="sticky"><button id="lock" '+(T.slot===null?"disabled":"")+'>Lock it in</button></div>');
+  app.querySelectorAll("[data-s]").forEach(function(b){
+    b.onclick = function(){
+      T.slot = +b.dataset.s;
+      app.querySelectorAll(".slot").forEach(function(x){ x.classList.remove("sel"); });
+      b.classList.add("sel");
+      $("lock").disabled = false;
+      buzz(10);
+    };
   });
   if(T.slot!==null){
-    const b = app.querySelector(`[data-s="${T.slot}"]`);
+    const b = app.querySelector('[data-s="'+T.slot+'"]');
     if(b) b.classList.add("sel");
   }
-  document.getElementById("lock").onclick = lockIn;
+  $("lock").onclick = lockIn;
+  $("skip").onclick = function(){ stopTimer(); pause(); startTurn(0); };
 }
 function lockIn(){
-  clearInterval(T.timerId);
-  const cards = sortedCards(cur());
-  let correct;
-  if(T.slot === null){ correct = false; }
-  else {
+  stopTimer();
+  const cards = sorted(cur());
+  let ok = false;
+  if(T.slot !== null){
     const lo = T.slot===0 ? -Infinity : cards[T.slot-1].year;
     const hi = T.slot===cards.length ? Infinity : cards[T.slot].year;
-    correct = T.year >= lo && T.year <= hi;
+    ok = T.year >= lo && T.year <= hi;
   }
-  T.result = correct;
-  if(correct){
-    cur().cards.push({ year:T.year, name:T.track.name, artist:T.track.artist, id:T.track.id });
-  }
+  T.result = ok;
+  if(ok) cur().cards.push({ year:T.year, name:T.track.name, artist:T.track.artist, id:T.track.id });
   saveGame();
+  buzz(ok ? [40,60,40] : 180);
   VIEW="reveal"; draw();
 }
-function viewReveal(){
-  const won = cur().cards.length >= G.target;
-  render(`
-    <div class="card reveal">
-      <div class="bigyear">${T.year}</div>
-      <div class="verdict ${T.result?"ok":"no"}">${T.result ? "Right spot — card is yours" : (T.slot===null ? "Out of time" : "Wrong spot")}</div>
-      <div class="songname">${esc(T.track.name)}</div>
-      <p class="artist">${esc(T.track.artist)}</p>
-    </div>
-    <div class="card">
-      <p class="note" style="margin-bottom:10px">Did they also name it? Tap what they got right — one bonus point for both.</p>
-      <div class="toggle">
-        <button id="bt" class="${T.gotTitle?"on":""}">Title</button>
-        <button id="ba" class="${T.gotArtist?"on":""}">Artist</button>
-      </div>
-      <button id="next">${won ? "See who won" : "Next player"}</button>
-      <button class="ghost small" id="fix" style="width:100%">Year looks wrong — take the card back</button>
-      <p class="note" style="margin-top:10px">Year from ${T.src === "musicbrainz" ? "MusicBrainz's earliest release" : T.src === "isrc" ? "the recording's ISRC code" : "the album Spotify has it on"}.</p>
-    </div>
-  `);
-  document.getElementById("bt").onclick = ()=>{ T.gotTitle=!T.gotTitle; draw(); };
-  document.getElementById("ba").onclick = ()=>{ T.gotArtist=!T.gotArtist; draw(); };
-  document.getElementById("fix").onclick = ()=>{
-    const p = cur();
-    p.cards = p.cards.filter(c => c.id !== T.track.id);
+function vReveal(){
+  const p = cur(), won = p.cards.length >= G.target;
+  const srcText = T.src==="musicbrainz" ? "MusicBrainz's earliest release"
+                : T.src==="isrc" ? "the recording's ISRC code" : "the album Spotify lists it on";
+  render(
+    '<div class="card hero">'+
+      '<div class="bigyear num" style="color:'+(T.result?"var(--mint)":"var(--red)")+'">'+T.year+'</div>'+
+      '<div class="verdict '+(T.result?"ok":"no")+'">'+
+        (T.result?"Right spot — card is yours":(T.slot===null?"Out of time":"Wrong spot"))+'</div>'+
+      '<div class="songname">'+esc(T.track.name)+'</div>'+
+      '<p class="artist">'+esc(T.track.artist)+'</p>'+
+    '</div>'+
+    '<div class="card">'+
+      '<p class="note" style="margin-bottom:10px">Did '+esc(p.name)+' name it too? Both earns a bonus point — five bonus points buys an extra song.</p>'+
+      '<div class="toggle">'+
+        '<button id="bt" class="'+(T.gotTitle?"on":"")+'">Title</button>'+
+        '<button id="ba" class="'+(T.gotArtist?"on":"")+'">Artist</button>'+
+      '</div>'+
+      '<button id="next">'+(won?"See who won":"Next player")+'</button>'+
+      '<button class="ghost tiny" id="fix" style="width:100%">That year is wrong — take the card back</button>'+
+      '<p class="note" style="margin-top:10px">Year from '+srcText+'.</p>'+
+    '</div>');
+  $("bt").onclick = function(){ T.gotTitle=!T.gotTitle; draw(); };
+  $("ba").onclick = function(){ T.gotArtist=!T.gotArtist; draw(); };
+  $("fix").onclick = function(){
+    cur().cards = cur().cards.filter(function(c){ return c.id !== T.track.id; });
     T.result = false; saveGame(); draw();
   };
-  document.getElementById("next").onclick = ()=>{
+  $("next").onclick = function(){
     if(T.gotTitle && T.gotArtist) cur().bonus++;
-    api("/me/player/pause", {method:"PUT"}).catch(()=>{});
+    pause();
     if(cur().cards.length >= G.target){ saveGame(); VIEW="win"; return draw(); }
     if(cur().bonus >= 5){ cur().bonus -= 5; saveGame(); VIEW="bonus"; return draw(); }
     G.turn = (G.turn+1) % G.players.length;
     saveGame(); VIEW="handoff"; draw();
   };
 }
-
-/* — bonus song, earned at five bonus points — */
-function viewBonus(){
+function vBonus(){
   const p = cur();
-  render(`
-    <div class="card reveal">
-      <div class="bigyear" style="font-size:3rem;color:var(--mint)">Bonus song</div>
-      <p class="lead" style="margin-top:8px">${esc(p.name)} spent five bonus points. Keep the phone — one more song, straight away.</p>
-      <p class="note">${p.bonus} bonus point${p.bonus===1?"":"s"} left over.</p>
-      <button id="go">Play it</button>
-    </div>
-  `);
-  document.getElementById("go").onclick = startTurn;
+  accent(p.color);
+  render(
+    '<div class="card hero">'+
+      '<div class="av l" style="--c:'+COLORS[p.color]+';margin:0 auto 14px">'+AVATARS[p.avatar]+'</div>'+
+      '<div class="display" style="font-size:1.9rem;color:var(--mint)">Bonus song</div>'+
+      '<p class="lead">'+esc(p.name)+' spent five bonus points. Keep the phone — one more song, right now.</p>'+
+      '<p class="note">'+p.bonus+' bonus point'+(p.bonus===1?"":"s")+' left over.</p>'+
+      '<button id="go">Play it</button>'+
+    '</div>');
+  $("go").onclick = function(){ startTurn(0); };
 }
 
-/* — scores / win — */
-function scoreList(){
-  const max = Math.max(...G.players.map(p=>p.cards.length));
-  return G.players.map(p=>`
-    <div class="score">
-      <span>${p.cards.length===max?'<span class="lead-dot"></span>':""}${esc(p.name)}</span>
-      <span class="n">${p.cards.length}${p.bonus?` <span style="color:var(--dim);font-weight:400">+${p.bonus}</span>`:""}</span>
-    </div>`).join("");
+/* ══════════ scores, settings, win ══════════ */
+function scoreRows(){
+  let max = 0;
+  G.players.forEach(function(p){ if(p.cards.length > max) max = p.cards.length; });
+  return G.players.slice().sort(function(a,b){
+      return (b.cards.length-a.cards.length) || (b.bonus-a.bonus);
+    }).map(function(p){
+      return '<div class="score">'+
+        '<div class="av s" style="--c:'+COLORS[p.color]+'">'+AVATARS[p.avatar]+'</div>'+
+        '<div class="nm">'+esc(p.name)+(p.cards.length===max&&max>0?' <span class="note">· leading</span>':"")+
+          (p.bonus?'<div class="b">'+p.bonus+'/5 to a bonus song</div>':"")+
+        '</div>'+
+        '<span class="n num" style="color:'+COLORS[p.color]+'">'+p.cards.length+'</span>'+
+      '</div>';
+    }).join("");
 }
-function viewScores(){
-  render(`<h1>Scores</h1><div class="card">${scoreList()}</div>
-    <p class="note">The small number is bonus points, one for each time you named both the title and the artist. Five of them buys an extra song on the spot.</p>
-    <button class="ghost" id="b">Back to the game</button>`);
-  document.getElementById("b").onclick = ()=>{ VIEW="handoff"; draw(); };
+function vScores(){
+  stopTimer();
+  resetAccent();
+  render(
+    '<h1>Scores</h1>'+
+    '<div class="card">'+scoreRows()+'</div>'+
+    '<div class="card">'+
+      '<h2>Share this game</h2>'+
+      '<p class="note" style="margin-bottom:10px">Anyone can open this link, but only this phone is logged into Spotify.</p>'+
+      '<p class="note" style="margin-bottom:10px"><code>'+esc(REDIRECT)+'</code></p>'+
+      '<button class="ghost" id="cp">Copy the link</button>'+
+    '</div>'+
+    '<div class="card">'+
+      '<h2>Trouble</h2>'+
+      '<button class="ghost" id="dev">Reconnect the speaker</button>'+
+      '<button class="danger" id="end">End this game and start over</button>'+
+    '</div>'+
+    '<button id="b">Back to the game</button>');
+  $("b").onclick = function(){ VIEW="handoff"; draw(); };
+  $("cp").onclick = async function(){
+    try{ await navigator.clipboard.writeText(REDIRECT); $("cp").textContent = "Copied"; }
+    catch(e){ $("cp").textContent = "Press and hold the link above to copy"; }
+  };
+  $("dev").onclick = async function(){
+    $("dev").textContent = "Looking…";
+    try{ DEVICE = null; await pickDevice(); $("dev").textContent = "Speaker reconnected"; }
+    catch(e){ $("dev").textContent = e.message; }
+  };
+  $("end").onclick = function(){
+    const b = $("end");
+    if(b.dataset.sure){ drop(LS.game); G=null; DRAFT=null; T=null; VIEW="setup"; return draw(); }
+    b.dataset.sure = "1";
+    b.textContent = "Tap again to wipe this game";
+    b.className = "solid-danger";
+  };
 }
-function viewWin(){
-  const w = [...G.players].sort((a,b)=> (b.cards.length-a.cards.length) || (b.bonus-a.bonus))[0];
-  render(`
-    <div class="card reveal">
-      <p class="note">Winner</p>
-      <div class="who" style="font-size:2.6rem;margin:4px 0 10px">${esc(w.name)}</div>
-      <p>${w.cards.length} cards${w.bonus?` and ${w.bonus} bonus`:""}</p>
-    </div>
-    <div class="card">${scoreList()}</div>
-    <button id="again">Play again, same players</button>
-    <button class="ghost" id="new">Start over</button>
-  `);
-  document.getElementById("again").onclick = ()=>{
-    NAMES = G.players.map(p=>p.name);
-    G = { players: G.players.map(p=>({name:p.name,cards:[],bonus:0})), turn:0, target:G.target, used:[] };
+function vWin(){
+  const w = G.players.slice().sort(function(a,b){
+    return (b.cards.length-a.cards.length) || (b.bonus-a.bonus);
+  })[0];
+  accent(w.color);
+  render(
+    '<div class="card hero">'+
+      '<p class="note">Winner</p>'+
+      '<div class="av l" style="--c:'+COLORS[w.color]+';margin:10px auto 14px">'+AVATARS[w.avatar]+'</div>'+
+      '<div class="display" style="font-size:2.4rem">'+esc(w.name)+'</div>'+
+      '<p>'+w.cards.length+' cards'+(w.bonus?(' and '+w.bonus+' bonus point'+(w.bonus===1?"":"s")):"")+'</p>'+
+    '</div>'+
+    '<div class="card">'+scoreRows()+'</div>'+
+    '<button id="again">Play again, same players</button>'+
+    '<button class="ghost" id="new">Start over</button>');
+  $("again").onclick = function(){
+    G = { players: G.players.map(function(p){
+            return { name:p.name, avatar:p.avatar, color:p.color, cards:[], bonus:0 };
+          }),
+          turn:0, target:G.target, secs:(G.secs||30), used:[] };
     VIEW="dealing"; draw(); dealStarters();
   };
-  document.getElementById("new").onclick = ()=>{
-    localStorage.removeItem(LS.game); G=null; NAMES=["",""]; VIEW="setup"; draw();
-  };
+  $("new").onclick = function(){ drop(LS.game); G=null; DRAFT=null; T=null; VIEW="setup"; draw(); };
 }
 
-/* ─────────────────────────── start ─────────────────────────── */
+/* ══════════ boot ══════════ */
 (async function boot(){
   const q = new URLSearchParams(location.search);
   if(q.get("error")){
     history.replaceState({},"",REDIRECT);
-    fail("Spotify refused the login: " + q.get("error") + ". Usually the redirect URI doesn't match, or the account isn't added to the app.");
+    fail("Spotify refused the login ("+q.get("error")+"). Usually the redirect URI doesn't match, or the account isn't listed under User Management.");
     VIEW="boot"; return draw();
   }
   if(q.get("code")){
-    render(`<div class="card"><span class="spin"></span>Finishing login…</div>`);
-    try{ await finishLogin(q.get("code")); }
-    catch(e){ fail(e.message); }
+    render('<div class="card"><span class="spin"></span>Finishing login…</div>');
+    try{ await finishLogin(q.get("code")); }catch(e){ fail(e.message); }
     history.replaceState({},"",REDIRECT);
   }
   if(!loggedIn()){ VIEW="boot"; return draw(); }
-  VIEW = G ? "handoff" : (POOL ? "setup" : "setup");
+  /* a game saved by an older build has no avatars, colours or timer length */
+  if(G && G.players){
+    G.players.forEach(function(p,i){
+      if(typeof p.avatar !== "number") p.avatar = i % AVATARS.length;
+      if(typeof p.color  !== "number") p.color  = i % COLORS.length;
+      if(!Array.isArray(p.cards))      p.cards  = [];
+      if(typeof p.bonus  !== "number") p.bonus  = 0;
+    });
+    if(typeof G.secs   !== "number") G.secs   = 30;
+    if(typeof G.target !== "number") G.target = 10;
+    if(!Array.isArray(G.used))       G.used   = [];
+    saveGame();
+  }
+  /* a game in progress always resumes at the handoff screen, never mid-timer */
+  VIEW = G ? "handoff" : "setup";
   draw();
 })();
 </script>
